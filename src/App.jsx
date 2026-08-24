@@ -472,26 +472,18 @@ export default function FleetLedger() {
   };
 
   const buildWorkbook = () => {
-    const truckSheet = trucks.map((t) => ({
-      "Truck ID": t.id,
-      "Truck Name": t.name,
-      "Plate": t.plate,
-      "Contracts": contracts.filter((c) => c.truckId === t.id).length,
-      "Total Revenue": truckTotals(t.id),
-    }));
-
     const contractRows = [];
     contracts.forEach((c) => {
       const truck = trucks.find((t) => t.id === c.truckId);
       const payout = payoutPerWeek(c);
       (c.blocks || []).forEach((b, i) => {
         contractRows.push({
-          "Truck Name": truck ? truck.name : "",
-          "Truck ID": c.truckId,
+          "Truck": truck ? truck.name : "(unknown truck)",
+          "Plate": truck ? truck.plate : "",
           "Contact ID": c.contactId,
           "Period Start": c.periodStart,
           "Period End": c.periodEnd,
-          "Calendar Week": isoWeek(c.periodStart),
+          "Week": isoWeek(c.periodStart),
           "Block #": i + 1,
           "Number of Blocks": num(b.qty),
           "Price of Block": num(b.price),
@@ -503,11 +495,20 @@ export default function FleetLedger() {
       });
     });
 
+    const truckSheet = trucks.map((t) => ({
+      "Truck": t.name,
+      "Plate": t.plate,
+      "Contracts": contracts.filter((c) => c.truckId === t.id).length,
+      "Total Payout per Week": truckTotals(t.id),
+    }));
+
     const wb = XLSX.utils.book_new();
-    const wsTrucks = XLSX.utils.json_to_sheet(truckSheet);
+    // "Contracts" is added first so it's the sheet that opens by default -
+    // it mirrors the on-screen table column-for-column.
     const wsContracts = XLSX.utils.json_to_sheet(contractRows);
-    XLSX.utils.book_append_sheet(wb, wsTrucks, "Trucks");
+    const wsTrucks = XLSX.utils.json_to_sheet(truckSheet);
     XLSX.utils.book_append_sheet(wb, wsContracts, "Contracts");
+    XLSX.utils.book_append_sheet(wb, wsTrucks, "Truck Summary");
     return wb;
   };
 
@@ -525,39 +526,42 @@ export default function FleetLedger() {
         const data = new Uint8Array(evt.target.result);
         const wb = XLSX.read(data, { type: "array" });
 
-        const trucksSheetName = wb.SheetNames.find((n) => n.toLowerCase() === "trucks") || wb.SheetNames[0];
-        const contractsSheetName = wb.SheetNames.find((n) => n.toLowerCase() === "contracts") || wb.SheetNames[1];
-
-        const rawTrucks = trucksSheetName ? XLSX.utils.sheet_to_json(wb.Sheets[trucksSheetName]) : [];
+        const contractsSheetName =
+          wb.SheetNames.find((n) => n.toLowerCase() === "contracts") || wb.SheetNames[0];
         const rawContracts = contractsSheetName ? XLSX.utils.sheet_to_json(wb.Sheets[contractsSheetName]) : [];
 
-        const idMap = {};
-        const newTrucks = rawTrucks.map((r) => {
-          const id = uid();
-          idMap[r["Truck ID"]] = id;
-          return {
-            id,
-            name: r["Truck Name"] || "Unnamed Truck",
-            plate: r["Plate"] || "",
-          };
-        });
+        // Trucks are derived from the truck names found in the Contracts
+        // sheet itself, in the order they first appear.
+        const truckByName = new Map();
+        const newTrucks = [];
+        const truckIdFor = (name, plate) => {
+          const key = name || "(unknown truck)";
+          if (!truckByName.has(key)) {
+            const t = { id: uid(), name: key, plate: plate || "" };
+            truckByName.set(key, t.id);
+            newTrucks.push(t);
+          }
+          return truckByName.get(key);
+        };
 
         // Group imported block rows back into contracts, keyed by
         // truck + contact + period start/end.
         const grouped = new Map();
         rawContracts.forEach((r) => {
-          const key = [r["Truck ID"], r["Contact ID"], r["Period Start"], r["Period End"]].join("|");
+          const truckName = r["Truck"] || r["Truck Name"] || "(unknown truck)";
+          const truckId = truckIdFor(truckName, r["Plate"]);
+          const key = [truckName, r["Contact ID"], r["Period Start"], r["Period End"]].join("|");
           if (!grouped.has(key)) {
             grouped.set(key, {
               id: uid(),
-              truckId: idMap[r["Truck ID"]] || newTrucks[0]?.id || null,
+              truckId,
               contactId: String(r["Contact ID"] ?? ""),
               periodStart: r["Period Start"] ? String(r["Period Start"]) : "",
               periodEnd: r["Period End"] ? String(r["Period End"]) : "",
               blocks: [],
-              basePricePerWeek: r["Base Price per Week"] || "",
-              otherPrice: r["Other Contract Price"] || "",
-              surcharge: r["Surcharges"] || "",
+              basePricePerWeek: r["Base Price per Week"] ?? "",
+              otherPrice: "",
+              surcharge: "",
               paymentDate: r["Payment Date"] ? String(r["Payment Date"]) : "",
               paymentStatus: r["Payment Status"] || "Pending",
             });
