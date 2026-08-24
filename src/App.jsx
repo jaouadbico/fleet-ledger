@@ -495,10 +495,10 @@ export default function FleetLedger() {
           "Block #": i + 1,
           "Number of Blocks": num(b.qty),
           "Price of Block": num(b.price),
-          "Payout per Week": i === 0 ? payout : "",
-          "Base Price per Week": i === 0 ? num(c.basePricePerWeek) : "",
-          "Payment Date": i === 0 ? c.paymentDate : "",
-          "Payment Status": i === 0 ? c.paymentStatus : "",
+          "Payout per Week": payout,
+          "Base Price per Week": num(c.basePricePerWeek),
+          "Payment Date": c.paymentDate,
+          "Payment Status": c.paymentStatus,
         });
       });
     });
