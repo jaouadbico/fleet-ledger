@@ -71,7 +71,7 @@ function money(n) {
   return n.toLocaleString(undefined, { style: "currency", currency: "USD" });
 }
 
-const emptyBlock = () => ({ id: uid(), qty: "1", price: "" });
+const emptyBlock = () => ({ id: uid(), qty: "1", price: "", date: "", time: "" });
 
 const emptyContract = (truckId) => ({
   id: uid(),
@@ -103,6 +103,9 @@ function migrateContract(c) {
         id: b.id || uid(),
         qty: b.qty ?? "1",
         price: b.price ?? "",
+        note: b.note ?? "",
+        date: b.date ?? "",
+        time: b.time ?? "",
       })),
       periodStart: c.periodStart ?? c.period ?? "",
       periodEnd: c.periodEnd ?? "",
@@ -113,7 +116,7 @@ function migrateContract(c) {
   // Legacy shape: block1 / block2 / block3 as flat price fields.
   const legacyBlocks = [c.block1, c.block2, c.block3]
     .filter((v) => v !== undefined)
-    .map((price) => ({ id: uid(), qty: "1", price: price ?? "" }));
+    .map((price) => ({ id: uid(), qty: "1", price: price ?? "", note: "", date: "", time: "" }));
 
   return {
     id: c.id || uid(),
@@ -192,72 +195,110 @@ function BlockStack({ blocks, onChangeBlock, onAddBlock, onRemoveBlock, width })
           key={b.id}
           style={{
             display: "flex",
-            alignItems: "center",
-            gap: 4,
-            height: 34,
-            padding: "0 4px",
+            flexDirection: "column",
+            padding: "4px 4px",
             borderBottom: `1px solid ${C.border}`,
           }}
         >
-          <span
-            style={{
-              fontFamily: FONT_MONO,
-              fontSize: 10,
-              color: C.textFaint,
-              width: 10,
-              flexShrink: 0,
-            }}
-          >
-            {i + 1}
-          </span>
-          <input
-            value={b.qty}
-            onChange={(e) => onChangeBlock(i, "qty", e.target.value)}
-            placeholder="qty"
-            type="number"
-            title="Number of blocks"
-            style={{
-              width: 34,
-              flexShrink: 0,
-              background: C.surfaceAlt,
-              border: `1px solid ${C.border}`,
-              borderRadius: 3,
-              outline: "none",
-              color: C.textDim,
-              fontFamily: FONT_MONO,
-              fontSize: 11,
-              textAlign: "center",
-              padding: "3px 2px",
-            }}
-          />
-          <span style={{ color: C.textFaint, fontSize: 10 }}>×</span>
-          <input
-            value={b.price}
-            onChange={(e) => onChangeBlock(i, "price", e.target.value)}
-            placeholder="price"
-            type="number"
-            title="Price of block"
-            style={{
-              width: "100%",
-              background: "transparent",
-              border: "none",
-              outline: "none",
-              color: C.text,
-              fontFamily: FONT_MONO,
-              fontSize: 12,
-              textAlign: "right",
-              padding: "4px 2px",
-            }}
-            onFocus={(e) => (e.target.style.background = C.surfaceHover)}
-            onBlur={(e) => (e.target.style.background = "transparent")}
-          />
-          <button
-            onClick={() => onRemoveBlock(i)}
-            title="Remove block"
-            style={{ background: "transparent", border: "none", color: C.textFaint, padding: 1, flexShrink: 0 }}
-          >
-            <X size={10} />
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: 10,
+                color: C.textFaint,
+                width: 10,
+                flexShrink: 0,
+              }}
+            >
+              {i + 1}
+            </span>
+            <input
+              value={b.qty}
+              onChange={(e) => onChangeBlock(i, "qty", e.target.value)}
+              placeholder="qty"
+              type="number"
+              title="Number of blocks"
+              style={{
+                width: 34,
+                flexShrink: 0,
+                background: C.surfaceAlt,
+                border: `1px solid ${C.border}`,
+                borderRadius: 3,
+                outline: "none",
+                color: C.textDim,
+                fontFamily: FONT_MONO,
+                fontSize: 11,
+                textAlign: "center",
+                padding: "3px 2px",
+              }}
+            />
+            <span style={{ color: C.textFaint, fontSize: 10 }}>×</span>
+            <input
+              value={b.price}
+              onChange={(e) => onChangeBlock(i, "price", e.target.value)}
+              placeholder="price"
+              type="number"
+              title="Price of block"
+              style={{
+                width: "100%",
+                background: "transparent",
+                border: "none",
+                outline: "none",
+                color: C.text,
+                fontFamily: FONT_MONO,
+                fontSize: 12,
+                textAlign: "right",
+                padding: "4px 2px",
+              }}
+              onFocus={(e) => (e.target.style.background = C.surfaceHover)}
+              onBlur={(e) => (e.target.style.background = "transparent")}
+            />
+            <button
+              onClick={() => onRemoveBlock(i)}
+              title="Remove block"
+              style={{ background: "transparent", border: "none", color: C.textFaint, padding: 1, flexShrink: 0 }}
+            >
+              <X size={10} />
+            </button>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 3, paddingLeft: 14 }}>
+            <input
+              value={b.date || ""}
+              onChange={(e) => onChangeBlock(i, "date", e.target.value)}
+              type="date"
+              title="Block date"
+              style={{
+                width: "58%",
+                background: "transparent",
+                border: "none",
+                outline: "none",
+                color: C.textFaint,
+                fontFamily: FONT_MONO,
+                fontSize: 10.5,
+                padding: "1px 2px",
+              }}
+              onFocus={(e) => (e.target.style.background = C.surfaceHover)}
+              onBlur={(e) => (e.target.style.background = "transparent")}
+            />
+            <input
+              value={b.time || ""}
+              onChange={(e) => onChangeBlock(i, "time", e.target.value)}
+              type="time"
+              title="Block time"
+              style={{
+                width: "42%",
+                background: "transparent",
+                border: "none",
+                outline: "none",
+                color: C.textFaint,
+                fontFamily: FONT_MONO,
+                fontSize: 10.5,
+                padding: "1px 2px",
+              }}
+              onFocus={(e) => (e.target.style.background = C.surfaceHover)}
+              onBlur={(e) => (e.target.style.background = "transparent")}
+            />
+          </div>
         </div>
       ))}
       <button
@@ -318,7 +359,6 @@ export default function FleetLedger() {
   const [status, setStatus] = useState("");
   const [newTruckOpen, setNewTruckOpen] = useState(false);
   const [newTruckName, setNewTruckName] = useState("");
-  const [newTruckPlate, setNewTruckPlate] = useState("");
   const fileInputRef = useRef(null);
   const saveTimer = useRef(null);
   const backupTimer = useRef(null);
@@ -413,11 +453,10 @@ export default function FleetLedger() {
 
   const addTruck = () => {
     if (!newTruckName.trim()) return;
-    const t = { id: uid(), name: newTruckName.trim(), plate: newTruckPlate.trim() };
+    const t = { id: uid(), name: newTruckName.trim() };
     setTrucks((prev) => [...prev, t]);
     setSelectedTruckId(t.id);
     setNewTruckName("");
-    setNewTruckPlate("");
     setNewTruckOpen(false);
   };
 
@@ -481,7 +520,6 @@ export default function FleetLedger() {
       (c.blocks || []).forEach((b, i) => {
         contractRows.push({
           "Truck": truck ? truck.name : "(unknown truck)",
-          "Plate": truck ? truck.plate : "",
           "Contact ID": c.contactId,
           "Period Start": c.periodStart,
           "Period End": c.periodEnd,
@@ -489,6 +527,8 @@ export default function FleetLedger() {
           "Block #": i + 1,
           "Number of Blocks": num(b.qty),
           "Price of Block": num(b.price),
+          "Block Date": b.date || "",
+          "Block Time": b.time || "",
           "Payout per Week": payout,
           "Base Price per Week": num(c.basePricePerWeek),
           "Payment Date": c.paymentDate,
@@ -499,7 +539,6 @@ export default function FleetLedger() {
 
     const truckSheet = trucks.map((t) => ({
       "Truck": t.name,
-      "Plate": t.plate,
       "Contracts": contracts.filter((c) => c.truckId === t.id).length,
       "Total Payout per Week": truckTotals(t.id),
     }));
@@ -536,10 +575,10 @@ export default function FleetLedger() {
         // sheet itself, in the order they first appear.
         const truckByName = new Map();
         const newTrucks = [];
-        const truckIdFor = (name, plate) => {
+        const truckIdFor = (name) => {
           const key = name || "(unknown truck)";
           if (!truckByName.has(key)) {
-            const t = { id: uid(), name: key, plate: plate || "" };
+            const t = { id: uid(), name: key };
             truckByName.set(key, t.id);
             newTrucks.push(t);
           }
@@ -551,7 +590,7 @@ export default function FleetLedger() {
         const grouped = new Map();
         rawContracts.forEach((r) => {
           const truckName = r["Truck"] || r["Truck Name"] || "(unknown truck)";
-          const truckId = truckIdFor(truckName, r["Plate"]);
+          const truckId = truckIdFor(truckName);
           const key = [truckName, r["Contact ID"], r["Period Start"], r["Period End"]].join("|");
           if (!grouped.has(key)) {
             grouped.set(key, {
@@ -573,6 +612,8 @@ export default function FleetLedger() {
             id: uid(),
             qty: r["Number of Blocks"] ?? "1",
             price: r["Price of Block"] ?? "",
+            date: r["Block Date"] ?? "",
+            time: r["Block Time"] ?? "",
           });
         });
 
@@ -600,7 +641,7 @@ export default function FleetLedger() {
     periodStart: 92,
     periodEnd: 92,
     week: 42,
-    block: 150,
+    block: 210,
     payout: 92,
     base: 92,
     payDate: 100,
@@ -811,13 +852,8 @@ export default function FleetLedger() {
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <div>
-                      <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 13.5, color: active ? C.amber : C.text }}>
-                        {t.name}
-                      </div>
-                      <div style={{ fontFamily: FONT_MONO, fontSize: 11, color: C.textDim, marginTop: 2 }}>
-                        {t.plate || "no plate"}
-                      </div>
+                    <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 13.5, color: active ? C.amber : C.text }}>
+                      {t.name}
                     </div>
                     <button
                       onClick={(e) => {
@@ -877,21 +913,6 @@ export default function FleetLedger() {
                   value={newTruckName}
                   onChange={(e) => setNewTruckName(e.target.value)}
                   placeholder="Truck name (e.g. Unit 12 — Cascadia)"
-                  style={{
-                    background: C.surfaceAlt,
-                    border: `1px solid ${C.borderLight}`,
-                    borderRadius: 5,
-                    color: C.text,
-                    fontSize: 12.5,
-                    padding: "7px 8px",
-                    outline: "none",
-                    fontFamily: FONT_BODY,
-                  }}
-                />
-                <input
-                  value={newTruckPlate}
-                  onChange={(e) => setNewTruckPlate(e.target.value)}
-                  placeholder="Plate / VIN (optional)"
                   onKeyDown={(e) => e.key === "Enter" && addTruck()}
                   style={{
                     background: C.surfaceAlt,
@@ -901,7 +922,7 @@ export default function FleetLedger() {
                     fontSize: 12.5,
                     padding: "7px 8px",
                     outline: "none",
-                    fontFamily: FONT_MONO,
+                    fontFamily: FONT_BODY,
                   }}
                 />
                 <div style={{ display: "flex", gap: 6 }}>
@@ -924,7 +945,6 @@ export default function FleetLedger() {
                     onClick={() => {
                       setNewTruckOpen(false);
                       setNewTruckName("");
-                      setNewTruckPlate("");
                     }}
                     style={{
                       background: "transparent",
@@ -978,21 +998,6 @@ export default function FleetLedger() {
                   </div>
                   <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 22, display: "flex", alignItems: "center", gap: 10 }}>
                     {selectedTruck.name}
-                    {selectedTruck.plate && (
-                      <span
-                        style={{
-                          fontFamily: FONT_MONO,
-                          fontSize: 12,
-                          background: C.surfaceAlt,
-                          border: `1px solid ${C.borderLight}`,
-                          borderRadius: 4,
-                          padding: "3px 7px",
-                          color: C.textDim,
-                        }}
-                      >
-                        {selectedTruck.plate}
-                      </span>
-                    )}
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 20 }}>
@@ -1017,7 +1022,7 @@ export default function FleetLedger() {
 
               {/* Table */}
               <div style={{ flex: 1, overflow: "auto", padding: "0 24px 24px" }}>
-                <div style={{ minWidth: 1050, marginTop: 14 }}>
+                <div style={{ minWidth: 1110, marginTop: 14 }}>
                   {/* header row */}
                   <div
                     style={{
@@ -1035,7 +1040,7 @@ export default function FleetLedger() {
                     <Cell width={colWidths.periodStart}>Period Start</Cell>
                     <Cell width={colWidths.periodEnd}>Period End</Cell>
                     <Cell width={colWidths.week}>Wk</Cell>
-                    <Cell width={colWidths.block}># of blocks × Price</Cell>
+                    <Cell width={colWidths.block}>Qty × Price / Date · Time</Cell>
                     <Cell width={colWidths.payout} align="right">Payout/wk</Cell>
                     <Cell width={colWidths.base} align="right">Base price/wk</Cell>
                     <Cell width={colWidths.payDate}>Payment Date</Cell>
