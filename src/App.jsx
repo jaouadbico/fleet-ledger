@@ -48,16 +48,18 @@ const storage = {
 
 const uid = () => (crypto?.randomUUID ? crypto.randomUUID() : "id-" + Math.random().toString(36).slice(2));
 
-function isoWeek(dateStr) {
+// Calendar week number using the standard US convention: weeks run
+// Sunday through Saturday, and week 1 is the week containing Jan 1.
+// This matches Sun-Sat dispatch/billing weeks, so a period like
+// 8/23/2026-8/29/2026 (a full Sun-Sat week) lands on a single week number.
+function calendarWeek(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr + "T00:00:00");
   if (isNaN(d.getTime())) return "";
-  const target = new Date(d.valueOf());
-  const dayNr = (d.getDay() + 6) % 7;
-  target.setDate(target.getDate() - dayNr + 3);
-  const firstThursday = new Date(target.getFullYear(), 0, 4);
-  const diff = target - firstThursday;
-  return 1 + Math.round(diff / (7 * 24 * 3600 * 1000));
+  const jan1 = new Date(d.getFullYear(), 0, 1);
+  const jan1WeekdaySun0 = jan1.getDay(); // 0=Sun..6=Sat already
+  const daysSinceJan1 = Math.round((d - jan1) / (24 * 3600 * 1000));
+  return Math.floor((daysSinceJan1 + jan1WeekdaySun0) / 7) + 1;
 }
 
 function num(v) {
@@ -483,7 +485,7 @@ export default function FleetLedger() {
           "Contact ID": c.contactId,
           "Period Start": c.periodStart,
           "Period End": c.periodEnd,
-          "Week": isoWeek(c.periodStart),
+          "Week": calendarWeek(c.periodStart),
           "Block #": i + 1,
           "Number of Blocks": num(b.qty),
           "Price of Block": num(b.price),
@@ -1062,7 +1064,7 @@ export default function FleetLedger() {
                           <EditableInput type="date" value={c.periodEnd} onChange={(v) => updateContract(c.id, "periodEnd", v)} />
                         </Cell>
                         <Cell width={colWidths.week}>
-                          <span style={{ fontFamily: FONT_MONO, fontSize: 12, color: C.textDim }}>{isoWeek(c.periodStart) || "—"}</span>
+                          <span style={{ fontFamily: FONT_MONO, fontSize: 12, color: C.textDim }}>{calendarWeek(c.periodStart) || "—"}</span>
                         </Cell>
                         <BlockStack
                           width={colWidths.block}
