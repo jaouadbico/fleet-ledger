@@ -638,8 +638,8 @@ export default function FleetLedger() {
 
   const colWidths = {
     contact: 140,
-    periodStart: 92,
-    periodEnd: 92,
+    periodStart: 138,
+    periodEnd: 138,
     week: 42,
     block: 210,
     payout: 92,
@@ -1022,7 +1022,7 @@ export default function FleetLedger() {
 
               {/* Table */}
               <div style={{ flex: 1, overflow: "auto", padding: "0 24px 24px" }}>
-                <div style={{ minWidth: 1160, marginTop: 14 }}>
+                <div style={{ minWidth: 1250, marginTop: 14 }}>
                   {/* header row */}
                   <div
                     style={{
