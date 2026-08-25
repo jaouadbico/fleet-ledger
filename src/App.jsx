@@ -71,7 +71,7 @@ function money(n) {
   return n.toLocaleString(undefined, { style: "currency", currency: "USD" });
 }
 
-const emptyBlock = () => ({ id: uid(), qty: "1", price: "", date: "", time: "" });
+const emptyBlock = () => ({ id: uid(), qty: "1", price: "", day: "", time: "" });
 
 const emptyContract = (truckId) => ({
   id: uid(),
@@ -104,7 +104,7 @@ function migrateContract(c) {
         qty: b.qty ?? "1",
         price: b.price ?? "",
         note: b.note ?? "",
-        date: b.date ?? "",
+        day: b.day ?? "",
         time: b.time ?? "",
       })),
       periodStart: c.periodStart ?? c.period ?? "",
@@ -116,7 +116,7 @@ function migrateContract(c) {
   // Legacy shape: block1 / block2 / block3 as flat price fields.
   const legacyBlocks = [c.block1, c.block2, c.block3]
     .filter((v) => v !== undefined)
-    .map((price) => ({ id: uid(), qty: "1", price: price ?? "", note: "", date: "", time: "" }));
+    .map((price) => ({ id: uid(), qty: "1", price: price ?? "", note: "", day: "", time: "" }));
 
   return {
     id: c.id || uid(),
@@ -262,31 +262,35 @@ function BlockStack({ blocks, onChangeBlock, onAddBlock, onRemoveBlock, width })
             </button>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 3, paddingLeft: 14 }}>
-            <input
-              value={b.date || ""}
-              onChange={(e) => onChangeBlock(i, "date", e.target.value)}
-              type="date"
-              title="Block date"
+            <select
+              value={b.day || ""}
+              onChange={(e) => onChangeBlock(i, "day", e.target.value)}
+              title="Block start day"
               style={{
-                width: "58%",
+                width: "56%",
                 background: "transparent",
                 border: "none",
                 outline: "none",
-                color: C.textFaint,
+                color: b.day ? C.textFaint : C.textFaint,
                 fontFamily: FONT_MONO,
                 fontSize: 10.5,
                 padding: "1px 2px",
               }}
-              onFocus={(e) => (e.target.style.background = C.surfaceHover)}
-              onBlur={(e) => (e.target.style.background = "transparent")}
-            />
+            >
+              <option style={{ background: C.surface, color: C.text }} value="">day</option>
+              {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((d) => (
+                <option key={d} style={{ background: C.surface, color: C.text }} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
             <input
               value={b.time || ""}
               onChange={(e) => onChangeBlock(i, "time", e.target.value)}
               type="time"
-              title="Block time"
+              title="Block start time"
               style={{
-                width: "42%",
+                width: "44%",
                 background: "transparent",
                 border: "none",
                 outline: "none",
@@ -527,7 +531,7 @@ export default function FleetLedger() {
           "Block #": i + 1,
           "Number of Blocks": num(b.qty),
           "Price of Block": num(b.price),
-          "Block Date": b.date || "",
+          "Block Day": b.day || "",
           "Block Time": b.time || "",
           "Payout per Week": payout,
           "Base Price per Week": num(c.basePricePerWeek),
@@ -612,7 +616,7 @@ export default function FleetLedger() {
             id: uid(),
             qty: r["Number of Blocks"] ?? "1",
             price: r["Price of Block"] ?? "",
-            date: r["Block Date"] ?? "",
+            day: r["Block Day"] ?? "",
             time: r["Block Time"] ?? "",
           });
         });
@@ -1040,7 +1044,7 @@ export default function FleetLedger() {
                     <Cell width={colWidths.periodStart}>Period Start</Cell>
                     <Cell width={colWidths.periodEnd}>Period End</Cell>
                     <Cell width={colWidths.week}>Wk</Cell>
-                    <Cell width={colWidths.block}>Qty × Price / Date · Time</Cell>
+                    <Cell width={colWidths.block}>Qty × Price / Start Day · Time</Cell>
                     <Cell width={colWidths.payout} align="right">Payout/wk</Cell>
                     <Cell width={colWidths.base} align="right">Base price/wk</Cell>
                     <Cell width={colWidths.payDate}>Payment Date</Cell>
