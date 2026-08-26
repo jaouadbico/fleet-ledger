@@ -17,6 +17,7 @@
           "id": "ddb539cb-af73-432c-8dad-2fffec931c69",
           "qty": "1",
           "price": "1994",
+          "note": "",
           "day": "Sunday",
           "time": "09:00"
         },
@@ -24,6 +25,7 @@
           "id": "7e0d44ad-580d-4ad6-8d4e-079d02e25ee3",
           "qty": "1",
           "price": "1944",
+          "note": "",
           "day": "Wednesday",
           "time": "09:00"
         },
@@ -31,6 +33,7 @@
           "id": "2baf13e6-ab4b-432f-a932-9774344c23b4",
           "qty": "1",
           "price": "1944",
+          "note": "",
           "day": "Friday",
           "time": "09:00"
         }
@@ -52,6 +55,7 @@
           "id": "b9b10169-de7f-416a-9858-49024312832b",
           "qty": "1",
           "price": "",
+          "note": "",
           "day": "",
           "time": ""
         },
@@ -59,6 +63,7 @@
           "id": "5331b384-95cc-46cb-9a00-2452e60a648e",
           "qty": "1",
           "price": "",
+          "note": "",
           "day": "",
           "time": ""
         },
@@ -66,6 +71,7 @@
           "id": "030b01f5-1e74-4c1c-a6da-346bd300af77",
           "qty": "1",
           "price": "1912",
+          "note": "",
           "day": "Friday",
           "time": "00:00"
         }
@@ -87,6 +93,7 @@
           "id": "6932664f-7804-435a-b03b-e9abe6adde32",
           "qty": "1",
           "price": "2007",
+          "note": "",
           "day": "Sunday",
           "time": "03:00"
         },
@@ -94,6 +101,7 @@
           "id": "0de97cb8-2bb3-42eb-ad48-8821e57a5a85",
           "qty": "1",
           "price": "",
+          "note": "",
           "day": "",
           "time": ""
         },
@@ -101,6 +109,7 @@
           "id": "50a1cee8-62ac-4ae8-bd17-7b9a7f5b316c",
           "qty": "1",
           "price": "2007",
+          "note": "",
           "day": "Friday",
           "time": "03:00"
         }
@@ -122,6 +131,7 @@
           "id": "63b8d28b-db85-4389-ad1b-ddc01f50e006",
           "qty": "1",
           "price": "",
+          "note": "",
           "day": "",
           "time": ""
         },
@@ -129,6 +139,7 @@
           "id": "519e9d58-a503-4f80-9d8e-7b8d41b966a4",
           "qty": "1",
           "price": "",
+          "note": "",
           "day": "",
           "time": ""
         },
@@ -136,6 +147,7 @@
           "id": "47e14825-f741-4d94-8e86-09d4d7add624",
           "qty": "1",
           "price": "",
+          "note": "",
           "day": "",
           "time": ""
         }
