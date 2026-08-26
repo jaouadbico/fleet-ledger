@@ -1,0 +1,150 @@
+{
+  "trucks": [
+    {
+      "id": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "name": "777"
+    }
+  ],
+  "contracts": [
+    {
+      "id": "d953979e-a313-4e6f-9e34-947cdf5199a9",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "contactId": "C-00036JYVG",
+      "periodStart": "2026-08-30",
+      "periodEnd": "2026-09-05",
+      "blocks": [
+        {
+          "id": "ddb539cb-af73-432c-8dad-2fffec931c69",
+          "qty": "1",
+          "price": "1994",
+          "day": "Sunday",
+          "time": "09:00"
+        },
+        {
+          "id": "7e0d44ad-580d-4ad6-8d4e-079d02e25ee3",
+          "qty": "1",
+          "price": "1944",
+          "day": "Wednesday",
+          "time": "09:00"
+        },
+        {
+          "id": "2baf13e6-ab4b-432f-a932-9774344c23b4",
+          "qty": "1",
+          "price": "1944",
+          "day": "Friday",
+          "time": "09:00"
+        }
+      ],
+      "basePricePerWeek": "",
+      "otherPrice": "",
+      "surcharge": "",
+      "paymentDate": "",
+      "paymentStatus": "Pending"
+    },
+    {
+      "id": "a4ec42b5-4062-4a9b-9dcd-cab2fca74c5b",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "contactId": "C-00036T1L1",
+      "periodStart": "2026-09-06",
+      "periodEnd": "2026-09-12",
+      "blocks": [
+        {
+          "id": "b9b10169-de7f-416a-9858-49024312832b",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        },
+        {
+          "id": "5331b384-95cc-46cb-9a00-2452e60a648e",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        },
+        {
+          "id": "030b01f5-1e74-4c1c-a6da-346bd300af77",
+          "qty": "1",
+          "price": "1912",
+          "day": "Friday",
+          "time": "00:00"
+        }
+      ],
+      "basePricePerWeek": "",
+      "otherPrice": "",
+      "surcharge": "",
+      "paymentDate": "",
+      "paymentStatus": "Pending"
+    },
+    {
+      "id": "f0c85243-8313-46ec-a6cb-5e42b604f03d",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "contactId": "C-00036XNWF",
+      "periodStart": "2026-09-13",
+      "periodEnd": "2026-09-19",
+      "blocks": [
+        {
+          "id": "6932664f-7804-435a-b03b-e9abe6adde32",
+          "qty": "1",
+          "price": "2007",
+          "day": "Sunday",
+          "time": "03:00"
+        },
+        {
+          "id": "0de97cb8-2bb3-42eb-ad48-8821e57a5a85",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        },
+        {
+          "id": "50a1cee8-62ac-4ae8-bd17-7b9a7f5b316c",
+          "qty": "1",
+          "price": "2007",
+          "day": "Friday",
+          "time": "03:00"
+        }
+      ],
+      "basePricePerWeek": "",
+      "otherPrice": "",
+      "surcharge": "",
+      "paymentDate": "",
+      "paymentStatus": "Pending"
+    },
+    {
+      "id": "8610e0db-3bb6-439c-bb0e-c73d7a4b9d53",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "contactId": "",
+      "periodStart": "",
+      "periodEnd": "",
+      "blocks": [
+        {
+          "id": "63b8d28b-db85-4389-ad1b-ddc01f50e006",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        },
+        {
+          "id": "519e9d58-a503-4f80-9d8e-7b8d41b966a4",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        },
+        {
+          "id": "47e14825-f741-4d94-8e86-09d4d7add624",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        }
+      ],
+      "basePricePerWeek": "",
+      "otherPrice": "",
+      "surcharge": "",
+      "paymentDate": "",
+      "paymentStatus": "Pending"
+    }
+  ]
+}
