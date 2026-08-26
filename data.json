@@ -148,7 +148,7 @@
           "time": "03:00"
         }
       ],
-      "basePricePerWeek": "",
+      "basePricePerWeek": "6",
       "otherPrice": "",
       "surcharge": "",
       "paymentDate": "2026-10-02",
