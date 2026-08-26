@@ -458,6 +458,18 @@ export default function FleetLedger() {
     fontFamily: FONT_MONO,
   };
 
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.matchMedia("(max-width: 760px)").matches : false
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 760px)");
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener ? mq.addEventListener("change", handler) : mq.addListener(handler);
+    return () => {
+      mq.removeEventListener ? mq.removeEventListener("change", handler) : mq.removeListener(handler);
+    };
+  }, []);
+
   // Load on mount - pulls from the linked GitHub data.json when a sync
   // config is saved on this device, otherwise falls back to local storage.
   useEffect(() => {
@@ -916,10 +928,12 @@ export default function FleetLedger() {
         style={{
           borderBottom: `1px solid ${C.border}`,
           background: C.surface,
-          padding: "16px 24px",
+          padding: isMobile ? "12px 14px" : "16px 24px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 10,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -932,6 +946,7 @@ export default function FleetLedger() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              flexShrink: 0,
             }}
           >
             <Truck size={19} color={C.bg} strokeWidth={2.4} />
@@ -940,14 +955,16 @@ export default function FleetLedger() {
             <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 18, letterSpacing: 0.2 }}>
               Fleet Ledger
             </div>
-            <div style={{ fontSize: 11.5, color: C.textDim, fontFamily: FONT_MONO }}>
-              trucks &amp; contracts · optional live .xlsx backup
-            </div>
+            {!isMobile && (
+              <div style={{ fontSize: 11.5, color: C.textDim, fontFamily: FONT_MONO }}>
+                trucks &amp; contracts · optional live .xlsx backup
+              </div>
+            )}
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {status && (
+        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 10, flexWrap: "wrap" }}>
+          {status && !isMobile && (
             <span style={{ fontSize: 11.5, color: C.textDim, fontFamily: FONT_MONO }}>{status}</span>
           )}
 
@@ -973,9 +990,11 @@ export default function FleetLedger() {
                   flexShrink: 0,
                 }}
               />
-              <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: C.textDim, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {githubConfig.owner}/{githubConfig.repo}
-              </span>
+              {!isMobile && (
+                <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: C.textDim, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {githubConfig.owner}/{githubConfig.repo}
+                </span>
+              )}
               <button
                 onClick={manualSyncGithub}
                 title="Sync now"
@@ -1007,11 +1026,11 @@ export default function FleetLedger() {
                 fontSize: 12.5,
               }}
             >
-              <Github size={14} /> Sync via GitHub
+              <Github size={14} /> {!isMobile && "Sync via GitHub"}
             </button>
           )}
 
-          {fileSystemAccessSupported ? (
+          {!isMobile && (fileSystemAccessSupported ? (
             backupHandle ? (
               <div
                 title={backupStatus}
@@ -1063,7 +1082,7 @@ export default function FleetLedger() {
             >
               Live backup: Chrome/Edge only
             </span>
-          )}
+          ))}
 
           <input
             type="file"
@@ -1074,6 +1093,7 @@ export default function FleetLedger() {
           />
           <button
             onClick={() => fileInputRef.current?.click()}
+            title="Import .xlsx"
             style={{
               display: "flex",
               alignItems: "center",
@@ -1082,15 +1102,16 @@ export default function FleetLedger() {
               border: `1px solid ${C.borderLight}`,
               color: C.text,
               borderRadius: 6,
-              padding: "8px 12px",
+              padding: isMobile ? "8px 10px" : "8px 12px",
               fontSize: 12.5,
               fontWeight: 500,
             }}
           >
-            <Upload size={14} /> Import .xlsx
+            <Upload size={14} /> {!isMobile && "Import .xlsx"}
           </button>
           <button
             onClick={exportToExcel}
+            title="Export .xlsx"
             style={{
               display: "flex",
               alignItems: "center",
@@ -1099,12 +1120,12 @@ export default function FleetLedger() {
               border: "none",
               color: C.bg,
               borderRadius: 6,
-              padding: "8px 12px",
+              padding: isMobile ? "8px 10px" : "8px 12px",
               fontSize: 12.5,
               fontWeight: 600,
             }}
           >
-            <Download size={14} /> Export .xlsx
+            <Download size={14} /> {!isMobile && "Export .xlsx"}
           </button>
         </div>
       </div>
@@ -1227,32 +1248,41 @@ export default function FleetLedger() {
         </div>
       )}
 
-      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-        {/* Sidebar */}
+      <div style={{ display: "flex", flex: 1, minHeight: 0, flexDirection: isMobile ? "column" : "row" }}>
+        {/* Sidebar / truck roster */}
         <div
           style={{
-            width: 260,
+            width: isMobile ? "100%" : 260,
             flexShrink: 0,
-            borderRight: `1px solid ${C.border}`,
+            borderRight: isMobile ? "none" : `1px solid ${C.border}`,
+            borderBottom: isMobile ? `1px solid ${C.border}` : "none",
             background: C.surface,
             display: "flex",
             flexDirection: "column",
           }}
         >
-          <div
-            style={{
-              padding: "14px 16px 8px",
-              fontSize: 11,
-              fontFamily: FONT_MONO,
-              color: C.textFaint,
-              letterSpacing: 0.6,
-              textTransform: "uppercase",
-            }}
-          >
-            Fleet Roster · {trucks.length}
-          </div>
+          {!isMobile && (
+            <div
+              style={{
+                padding: "14px 16px 8px",
+                fontSize: 11,
+                fontFamily: FONT_MONO,
+                color: C.textFaint,
+                letterSpacing: 0.6,
+                textTransform: "uppercase",
+              }}
+            >
+              Fleet Roster · {trucks.length}
+            </div>
+          )}
 
-          <div style={{ flex: 1, overflowY: "auto", padding: "0 10px" }}>
+          <div
+            style={
+              isMobile
+                ? { display: "flex", flexDirection: "row", overflowX: "auto", gap: 8, padding: "10px 12px" }
+                : { flex: 1, overflowY: "auto", padding: "0 10px" }
+            }
+          >
             {trucks.map((t) => {
               const active = t.id === selectedTruckId;
               const tContracts = contracts.filter((c) => c.truckId === t.id);
@@ -1260,17 +1290,29 @@ export default function FleetLedger() {
                 <div
                   key={t.id}
                   onClick={() => setSelectedTruckId(t.id)}
-                  style={{
-                    background: active ? C.surfaceAlt : "transparent",
-                    border: `1px solid ${active ? C.amberDim : "transparent"}`,
-                    borderRadius: 8,
-                    padding: "10px 10px",
-                    marginBottom: 6,
-                    cursor: "pointer",
-                  }}
+                  style={
+                    isMobile
+                      ? {
+                          background: active ? C.surfaceAlt : "transparent",
+                          border: `1px solid ${active ? C.amberDim : C.border}`,
+                          borderRadius: 8,
+                          padding: "8px 12px",
+                          flexShrink: 0,
+                          minWidth: 120,
+                          cursor: "pointer",
+                        }
+                      : {
+                          background: active ? C.surfaceAlt : "transparent",
+                          border: `1px solid ${active ? C.amberDim : "transparent"}`,
+                          borderRadius: 8,
+                          padding: "10px 10px",
+                          marginBottom: 6,
+                          cursor: "pointer",
+                        }
+                  }
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 13.5, color: active ? C.amber : C.text }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 6 }}>
+                    <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 13.5, color: active ? C.amber : C.text, whiteSpace: isMobile ? "nowrap" : "normal" }}>
                       {t.name}
                     </div>
                     <button
@@ -1283,13 +1325,14 @@ export default function FleetLedger() {
                         border: "none",
                         color: C.textFaint,
                         padding: 2,
+                        flexShrink: 0,
                       }}
                       title="Remove truck"
                     >
                       <X size={13} />
                     </button>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 11, fontFamily: FONT_MONO, color: C.textDim }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, marginTop: isMobile ? 4 : 8, fontSize: 11, fontFamily: FONT_MONO, color: C.textDim, whiteSpace: "nowrap" }}>
                     <span>{tContracts.length} contract{tContracts.length === 1 ? "" : "s"}</span>
                     <span style={{ color: C.green }}>{money(truckTotals(t.id))}</span>
                   </div>
@@ -1297,14 +1340,14 @@ export default function FleetLedger() {
               );
             })}
 
-            {trucks.length === 0 && (
+            {trucks.length === 0 && !isMobile && (
               <div style={{ fontSize: 12, color: C.textFaint, padding: "12px 6px" }}>
                 No trucks yet. Add your first truck below.
               </div>
             )}
           </div>
 
-          <div style={{ padding: 12, borderTop: `1px solid ${C.border}` }}>
+          <div style={{ padding: 12, borderTop: isMobile ? "none" : `1px solid ${C.border}` }}>
             {!newTruckOpen ? (
               <button
                 onClick={() => setNewTruckOpen(true)}
@@ -1403,22 +1446,24 @@ export default function FleetLedger() {
               {/* Truck header */}
               <div
                 style={{
-                  padding: "18px 24px 14px",
+                  padding: isMobile ? "14px 14px 12px" : "18px 24px 14px",
                   borderBottom: `1px solid ${C.border}`,
                   display: "flex",
                   justifyContent: "space-between",
-                  alignItems: "flex-end",
+                  alignItems: isMobile ? "flex-start" : "flex-end",
+                  flexWrap: "wrap",
+                  gap: 10,
                 }}
               >
                 <div>
                   <div style={{ fontSize: 11, fontFamily: FONT_MONO, color: C.textFaint, letterSpacing: 0.6, textTransform: "uppercase" }}>
                     Truck
                   </div>
-                  <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 22, display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: isMobile ? 19 : 22, display: "flex", alignItems: "center", gap: 10 }}>
                     {selectedTruck.name}
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: 20 }}>
+                <div style={{ display: "flex", gap: isMobile ? 14 : 20 }}>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontSize: 10.5, color: C.textFaint, fontFamily: FONT_MONO, textTransform: "uppercase" }}>Contracts</div>
                     <div style={{ fontFamily: FONT_DISPLAY, fontSize: 18, fontWeight: 600 }}>{truckContracts.length}</div>
@@ -1438,7 +1483,150 @@ export default function FleetLedger() {
                 </div>
               </div>
 
-              {/* Table */}
+              {/* Contracts */}
+              {isMobile ? (
+                <div style={{ flex: 1, overflow: "auto", padding: "14px 14px 24px" }}>
+                  {truckContracts.map((c) => {
+                    const payout = payoutPerWeek(c);
+                    return (
+                      <div
+                        key={c.id}
+                        style={{
+                          background: C.surfaceAlt,
+                          border: `1px solid ${C.border}`,
+                          borderRadius: 10,
+                          padding: 12,
+                          marginBottom: 12,
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 9.5, color: C.textFaint, fontFamily: FONT_MONO, textTransform: "uppercase", marginBottom: 2 }}>
+                              Contact ID
+                            </div>
+                            <input
+                              value={c.contactId}
+                              onChange={(e) => updateContract(c.id, "contactId", e.target.value)}
+                              placeholder="C-1001"
+                              style={{ ...inputStyle, width: "100%", fontSize: 14, fontWeight: 600 }}
+                            />
+                          </div>
+                          <button
+                            onClick={() => deleteContract(c.id)}
+                            style={{ background: "transparent", border: "none", color: C.textFaint, padding: 6, flexShrink: 0, marginTop: 14 }}
+                            title="Delete contract"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+
+                        <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 9.5, color: C.textFaint, fontFamily: FONT_MONO, textTransform: "uppercase", marginBottom: 2 }}>
+                              Period Start
+                            </div>
+                            <input
+                              type="date"
+                              value={c.periodStart}
+                              onChange={(e) => updateContract(c.id, "periodStart", e.target.value)}
+                              style={{ ...inputStyle, width: "100%" }}
+                            />
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 9.5, color: C.textFaint, fontFamily: FONT_MONO, textTransform: "uppercase", marginBottom: 2 }}>
+                              Period End
+                            </div>
+                            <input
+                              type="date"
+                              value={c.periodEnd}
+                              onChange={(e) => updateContract(c.id, "periodEnd", e.target.value)}
+                              style={{ ...inputStyle, width: "100%" }}
+                            />
+                          </div>
+                          <div style={{ width: 52, flexShrink: 0 }}>
+                            <div style={{ fontSize: 9.5, color: C.textFaint, fontFamily: FONT_MONO, textTransform: "uppercase", marginBottom: 2 }}>
+                              Wk
+                            </div>
+                            <div style={{ fontFamily: FONT_MONO, fontSize: 13, color: C.textDim, padding: "7px 0" }}>
+                              {calendarWeek(c.periodStart) || "—"}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ fontSize: 9.5, color: C.textFaint, fontFamily: FONT_MONO, textTransform: "uppercase", marginBottom: 4 }}>
+                          Blocks (qty × price / day · time)
+                        </div>
+                        <div style={{ border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 10, overflow: "hidden" }}>
+                          <BlockStack
+                            width="100%"
+                            blocks={c.blocks}
+                            onChangeBlock={(i, field, v) => updateBlock(c.id, i, field, v)}
+                            onAddBlock={() => addBlock(c.id)}
+                            onRemoveBlock={(i) => removeBlock(c.id, i)}
+                          />
+                        </div>
+
+                        <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 9.5, color: C.textFaint, fontFamily: FONT_MONO, textTransform: "uppercase", marginBottom: 2 }}>
+                              Payout/wk
+                            </div>
+                            <div style={{ fontFamily: FONT_MONO, fontSize: 14, fontWeight: 600, color: C.green, padding: "7px 0" }}>
+                              {money(payout)}
+                            </div>
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 9.5, color: C.textFaint, fontFamily: FONT_MONO, textTransform: "uppercase", marginBottom: 2 }}>
+                              Base price/wk
+                            </div>
+                            <input
+                              type="number"
+                              value={c.basePricePerWeek}
+                              onChange={(e) => updateContract(c.id, "basePricePerWeek", e.target.value)}
+                              placeholder="0"
+                              style={{ ...inputStyle, width: "100%" }}
+                            />
+                          </div>
+                        </div>
+
+                        <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 9.5, color: C.textFaint, fontFamily: FONT_MONO, textTransform: "uppercase", marginBottom: 2 }}>
+                              Payment Date
+                            </div>
+                            <input
+                              type="date"
+                              value={c.paymentDate}
+                              onChange={(e) => updateContract(c.id, "paymentDate", e.target.value)}
+                              style={{ ...inputStyle, width: "100%" }}
+                            />
+                          </div>
+                          <StatusPill value={c.paymentStatus} onChange={(v) => updateContract(c.id, "paymentStatus", v)} />
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => addContract(selectedTruck.id)}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                      background: "transparent",
+                      border: `1px dashed ${C.borderLight}`,
+                      color: C.textDim,
+                      borderRadius: 6,
+                      padding: "12px 14px",
+                      fontSize: 13,
+                    }}
+                  >
+                    <Plus size={14} /> Add contract
+                  </button>
+                </div>
+              ) : (
               <div style={{ flex: 1, overflow: "auto", padding: "0 24px 24px" }}>
                 <div style={{ minWidth: 1250, marginTop: 14 }}>
                   {/* header row */}
@@ -1540,6 +1728,7 @@ export default function FleetLedger() {
                   </button>
                 </div>
               </div>
+              )}
             </>
           )}
         </div>
