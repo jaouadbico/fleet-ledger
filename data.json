@@ -215,6 +215,13 @@
           "price": "2313",
           "day": "",
           "time": ""
+        },
+        {
+          "id": "b6e41294-6934-441b-9ec2-5f41ffb8b9e4",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
         }
       ],
       "basePricePerWeek": "",
