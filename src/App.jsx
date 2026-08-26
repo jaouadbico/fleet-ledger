@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
-import { Truck, Plus, Download, Upload, X, Trash2, Link2 } from "lucide-react";
+import { Truck, Plus, Download, Upload, X, Trash2, Link2, Github, RefreshCw, Settings } from "lucide-react";
 
 // ---------- Design tokens ----------
 const C = {
@@ -27,6 +27,70 @@ const FONT_BODY = "'Inter', sans-serif";
 const FONT_MONO = "'JetBrains Mono', monospace";
 
 const STORAGE_KEY = "fleet-ledger-data";
+const GITHUB_CONFIG_KEY = "fleet-ledger-github-config";
+
+// GitHub is used as the shared "source of truth" data file so the same
+// data shows up on any device. The config (owner/repo/branch/path/token)
+// is kept only in this browser's localStorage - it is a secret and is
+// never written into data.json or exported anywhere.
+function loadGithubConfig() {
+  try {
+    const raw = localStorage.getItem(GITHUB_CONFIG_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveGithubConfigLocal(cfg) {
+  localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(cfg));
+}
+
+function clearGithubConfigLocal() {
+  localStorage.removeItem(GITHUB_CONFIG_KEY);
+}
+
+async function githubGetFile(cfg) {
+  const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.path}?ref=${encodeURIComponent(cfg.branch)}`;
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `token ${cfg.token}`,
+      Accept: "application/vnd.github+json",
+    },
+  });
+  if (res.status === 404) return { exists: false, sha: null, data: null };
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(`GitHub read failed (${res.status}): ${body.message || res.statusText}`);
+  }
+  const json = await res.json();
+  const decoded = decodeURIComponent(escape(atob(json.content.replace(/\n/g, ""))));
+  return { exists: true, sha: json.sha, data: JSON.parse(decoded) };
+}
+
+async function githubPutFile(cfg, dataObj, sha) {
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(dataObj, null, 2))));
+  const res = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.path}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `token ${cfg.token}`,
+      Accept: "application/vnd.github+json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message: "Update fleet data",
+      content,
+      branch: cfg.branch,
+      ...(sha ? { sha } : {}),
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(`GitHub write failed (${res.status}): ${body.message || res.statusText}`);
+  }
+  return res.json();
+}
+
 
 // Standalone (non-Claude) storage shim backed by the browser's localStorage,
 // matching the get/set(key, value) shape the app uses. Data lives on this
@@ -371,21 +435,78 @@ export default function FleetLedger() {
   const [backupStatus, setBackupStatus] = useState("");
   const fileSystemAccessSupported = typeof window !== "undefined" && "showSaveFilePicker" in window;
 
-  // Load from storage on mount
+  const [githubConfig, setGithubConfig] = useState(null);
+  const [githubSha, setGithubSha] = useState(null);
+  const [githubStatus, setGithubStatus] = useState("");
+  const [showGithubPanel, setShowGithubPanel] = useState(false);
+  const [ghOwner, setGhOwner] = useState("");
+  const [ghRepo, setGhRepo] = useState("");
+  const [ghBranch, setGhBranch] = useState("main");
+  const [ghPath, setGhPath] = useState("data.json");
+  const [ghToken, setGhToken] = useState("");
+  const githubSyncTimer = useRef(null);
+  const suppressNextGithubPush = useRef(false);
+
+  const inputStyle = {
+    background: C.surfaceAlt,
+    border: `1px solid ${C.borderLight}`,
+    borderRadius: 5,
+    color: C.text,
+    fontSize: 12.5,
+    padding: "7px 8px",
+    outline: "none",
+    fontFamily: FONT_MONO,
+  };
+
+  // Load on mount - pulls from the linked GitHub data.json when a sync
+  // config is saved on this device, otherwise falls back to local storage.
   useEffect(() => {
     (async () => {
+      const applyData = (data) => {
+        const t = data.trucks || [];
+        const c = (data.contracts || []).map(migrateContract);
+        setTrucks(t);
+        setContracts(c);
+        if (t.length > 0) setSelectedTruckId(t[0].id);
+      };
+
+      const cfg = loadGithubConfig();
+      if (cfg) {
+        setGithubConfig(cfg);
+        setGhOwner(cfg.owner);
+        setGhRepo(cfg.repo);
+        setGhBranch(cfg.branch);
+        setGhPath(cfg.path);
+        setGhToken(cfg.token);
+      }
+
       try {
-        const result = await storage.get(STORAGE_KEY);
-        if (result?.value) {
-          const parsed = JSON.parse(result.value);
-          setTrucks(parsed.trucks || []);
-          setContracts((parsed.contracts || []).map(migrateContract));
-          if ((parsed.trucks || []).length > 0) {
-            setSelectedTruckId(parsed.trucks[0].id);
+        if (cfg) {
+          setGithubStatus("Syncing...");
+          const result = await githubGetFile(cfg);
+          if (result.exists) {
+            applyData(result.data);
+            setGithubSha(result.sha);
+            setGithubStatus("Synced " + new Date().toLocaleTimeString());
+          } else {
+            // data.json doesn't exist in the repo yet - fall back to
+            // whatever's cached locally so it can be pushed up on first save.
+            setGithubStatus("No data.json in repo yet");
+            const localResult = await storage.get(STORAGE_KEY);
+            if (localResult?.value) applyData(JSON.parse(localResult.value));
           }
+        } else {
+          const localResult = await storage.get(STORAGE_KEY);
+          if (localResult?.value) applyData(JSON.parse(localResult.value));
         }
       } catch (e) {
-        // no existing data yet
+        setGithubStatus("Sync error - " + e.message);
+        try {
+          const localResult = await storage.get(STORAGE_KEY);
+          if (localResult?.value) applyData(JSON.parse(localResult.value));
+        } catch (e2) {
+          // no local fallback available either
+        }
       } finally {
         setLoaded(true);
       }
@@ -407,6 +528,121 @@ export default function FleetLedger() {
     }, 500);
     return () => clearTimeout(saveTimer.current);
   }, [trucks, contracts, loaded]);
+
+  // Debounced push to the linked GitHub data.json whenever data changes.
+  useEffect(() => {
+    if (!loaded || !githubConfig) return;
+    if (suppressNextGithubPush.current) {
+      // This change came from a pull (GitHub -> app), not an edit -
+      // don't immediately push it right back.
+      suppressNextGithubPush.current = false;
+      return;
+    }
+    if (githubSyncTimer.current) clearTimeout(githubSyncTimer.current);
+    githubSyncTimer.current = setTimeout(async () => {
+      setGithubStatus("Syncing...");
+      try {
+        let sha = githubSha;
+        try {
+          const fresh = await githubGetFile(githubConfig);
+          sha = fresh.exists ? fresh.sha : null;
+        } catch (e) {
+          // fall back to the last-known sha if the pre-check fails
+        }
+        const result = await githubPutFile(githubConfig, { trucks, contracts }, sha);
+        setGithubSha(result.content.sha);
+        setGithubStatus("Synced " + new Date().toLocaleTimeString());
+      } catch (e) {
+        setGithubStatus("Sync error - " + e.message);
+      }
+    }, 1200);
+    return () => clearTimeout(githubSyncTimer.current);
+  }, [trucks, contracts, loaded, githubConfig]);
+
+  // Re-pull from GitHub whenever the tab/window regains focus, so opening
+  // this page on another device picks up changes made elsewhere.
+  useEffect(() => {
+    if (!githubConfig) return;
+    const pullLatest = async () => {
+      if (document.visibilityState && document.visibilityState !== "visible") return;
+      setGithubStatus("Syncing...");
+      try {
+        const result = await githubGetFile(githubConfig);
+        if (result.exists) {
+          suppressNextGithubPush.current = true;
+          setTrucks(result.data.trucks || []);
+          setContracts((result.data.contracts || []).map(migrateContract));
+          setGithubSha(result.sha);
+          setGithubStatus("Synced " + new Date().toLocaleTimeString());
+        }
+      } catch (e) {
+        setGithubStatus("Sync error - " + e.message);
+      }
+    };
+    document.addEventListener("visibilitychange", pullLatest);
+    window.addEventListener("focus", pullLatest);
+    return () => {
+      document.removeEventListener("visibilitychange", pullLatest);
+      window.removeEventListener("focus", pullLatest);
+    };
+  }, [githubConfig]);
+
+  const connectGithub = async () => {
+    if (!ghOwner.trim() || !ghRepo.trim() || !ghToken.trim()) {
+      setGithubStatus("Fill in owner, repo, and token");
+      return;
+    }
+    const cfg = {
+      owner: ghOwner.trim(),
+      repo: ghRepo.trim(),
+      branch: ghBranch.trim() || "main",
+      path: ghPath.trim() || "data.json",
+      token: ghToken.trim(),
+    };
+    setGithubStatus("Connecting...");
+    try {
+      const result = await githubGetFile(cfg);
+      if (result.exists) {
+        suppressNextGithubPush.current = true;
+        setTrucks(result.data.trucks || []);
+        setContracts((result.data.contracts || []).map(migrateContract));
+        setGithubSha(result.sha);
+      } else {
+        const put = await githubPutFile(cfg, { trucks, contracts }, null);
+        setGithubSha(put.content.sha);
+      }
+      saveGithubConfigLocal(cfg);
+      setGithubConfig(cfg);
+      setGithubStatus("Connected");
+      setShowGithubPanel(false);
+    } catch (e) {
+      setGithubStatus("Connection failed - " + e.message);
+    }
+  };
+
+  const disconnectGithub = () => {
+    clearGithubConfigLocal();
+    setGithubConfig(null);
+    setGithubSha(null);
+    setGithubStatus("");
+  };
+
+  const manualSyncGithub = async () => {
+    if (!githubConfig) return;
+    setGithubStatus("Syncing...");
+    try {
+      const result = await githubGetFile(githubConfig);
+      if (result.exists) {
+        suppressNextGithubPush.current = true;
+        setTrucks(result.data.trucks || []);
+        setContracts((result.data.contracts || []).map(migrateContract));
+        setGithubSha(result.sha);
+      }
+      setGithubStatus("Synced " + new Date().toLocaleTimeString());
+    } catch (e) {
+      setGithubStatus("Sync error - " + e.message);
+    }
+  };
 
   // Debounced write to the linked live-backup .xlsx file, when one is set.
   useEffect(() => {
@@ -715,6 +951,66 @@ export default function FleetLedger() {
             <span style={{ fontSize: 11.5, color: C.textDim, fontFamily: FONT_MONO }}>{status}</span>
           )}
 
+          {githubConfig ? (
+            <div
+              title={githubStatus}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                background: C.surfaceAlt,
+                border: `1px solid ${C.borderLight}`,
+                borderRadius: 6,
+                padding: "7px 10px",
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: 99,
+                  background: githubStatus.startsWith("Sync error") ? C.red : C.green,
+                  flexShrink: 0,
+                }}
+              />
+              <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: C.textDim, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {githubConfig.owner}/{githubConfig.repo}
+              </span>
+              <button
+                onClick={manualSyncGithub}
+                title="Sync now"
+                style={{ background: "transparent", border: "none", color: C.textFaint, padding: 0, display: "flex" }}
+              >
+                <RefreshCw size={12} />
+              </button>
+              <button
+                onClick={() => setShowGithubPanel(true)}
+                title="GitHub sync settings"
+                style={{ background: "transparent", border: "none", color: C.textFaint, padding: 0, display: "flex" }}
+              >
+                <Settings size={12} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowGithubPanel(true)}
+              title="Sync this app's data through a file in a GitHub repo"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                background: "transparent",
+                border: `1px dashed ${C.borderLight}`,
+                color: C.textDim,
+                borderRadius: 6,
+                padding: "8px 12px",
+                fontSize: 12.5,
+              }}
+            >
+              <Github size={14} /> Sync via GitHub
+            </button>
+          )}
+
           {fileSystemAccessSupported ? (
             backupHandle ? (
               <div
@@ -812,6 +1108,124 @@ export default function FleetLedger() {
           </button>
         </div>
       </div>
+
+      {showGithubPanel && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.55)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 50,
+          }}
+          onClick={() => setShowGithubPanel(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: C.surface,
+              border: `1px solid ${C.borderLight}`,
+              borderRadius: 10,
+              padding: 22,
+              width: 380,
+              maxWidth: "90vw",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+              <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}>
+                <Github size={17} /> Sync via GitHub
+              </div>
+              <button
+                onClick={() => setShowGithubPanel(false)}
+                style={{ background: "transparent", border: "none", color: C.textFaint }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div style={{ fontSize: 11.5, color: C.textDim, marginBottom: 16, lineHeight: 1.4 }}>
+              Stores your data in a <code>data.json</code> file in your repo, so any
+              device connected here shows the same data.
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <label style={{ fontSize: 10.5, color: C.textFaint, fontFamily: FONT_MONO }}>GitHub username</label>
+              <input
+                value={ghOwner}
+                onChange={(e) => setGhOwner(e.target.value)}
+                placeholder="jaouadbico"
+                style={inputStyle}
+              />
+              <label style={{ fontSize: 10.5, color: C.textFaint, fontFamily: FONT_MONO }}>Repository name</label>
+              <input
+                value={ghRepo}
+                onChange={(e) => setGhRepo(e.target.value)}
+                placeholder="fleet-ledger"
+                style={inputStyle}
+              />
+              <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 10.5, color: C.textFaint, fontFamily: FONT_MONO }}>Branch</label>
+                  <input value={ghBranch} onChange={(e) => setGhBranch(e.target.value)} style={{ ...inputStyle, width: "100%" }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 10.5, color: C.textFaint, fontFamily: FONT_MONO }}>File path</label>
+                  <input value={ghPath} onChange={(e) => setGhPath(e.target.value)} style={{ ...inputStyle, width: "100%" }} />
+                </div>
+              </div>
+              <label style={{ fontSize: 10.5, color: C.textFaint, fontFamily: FONT_MONO }}>Personal access token</label>
+              <input
+                value={ghToken}
+                onChange={(e) => setGhToken(e.target.value)}
+                placeholder="github_pat_..."
+                type="password"
+                style={inputStyle}
+              />
+            </div>
+
+            {githubStatus && (
+              <div style={{ fontSize: 11, color: C.textDim, marginTop: 10, fontFamily: FONT_MONO }}>{githubStatus}</div>
+            )}
+
+            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+              <button
+                onClick={connectGithub}
+                style={{
+                  flex: 1,
+                  background: C.amber,
+                  color: C.bg,
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "9px 0",
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              >
+                {githubConfig ? "Reconnect" : "Connect"}
+              </button>
+              {githubConfig && (
+                <button
+                  onClick={() => {
+                    disconnectGithub();
+                    setShowGithubPanel(false);
+                  }}
+                  style={{
+                    background: "transparent",
+                    color: C.red,
+                    border: `1px solid ${C.redDim}`,
+                    borderRadius: 6,
+                    padding: "9px 14px",
+                    fontSize: 13,
+                  }}
+                >
+                  Disconnect
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         {/* Sidebar */}
