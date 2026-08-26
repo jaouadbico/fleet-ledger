@@ -4,22 +4,22 @@ import { Truck, Plus, Download, Upload, X, Trash2, Link2, Github, RefreshCw, Set
 
 // ---------- Design tokens ----------
 const C = {
-  bg: "#12161B",
-  surface: "#1A2028",
-  surfaceAlt: "#212934",
-  surfaceHover: "#262F3B",
-  border: "#2B333E",
-  borderLight: "#374150",
-  text: "#E7EAEE",
-  textDim: "#8A94A3",
-  textFaint: "#5C6675",
-  amber: "#F2A93B",
-  amberDim: "#8A6420",
-  green: "#5FBE83",
-  greenDim: "#2C4E3A",
-  red: "#E2685C",
-  redDim: "#4E2C2C",
-  blue: "#5B93E0",
+  bg: "#FFFFFF",
+  surface: "#F5F6F8",
+  surfaceAlt: "#ECEEF1",
+  surfaceHover: "#E2E5EA",
+  border: "#DADDE2",
+  borderLight: "#C4C9D0",
+  text: "#14181C",
+  textDim: "#5C6675",
+  textFaint: "#8A94A3",
+  amber: "#8F5808",
+  amberDim: "#FBE8C7",
+  green: "#1E8A4C",
+  greenDim: "#DDF2E3",
+  red: "#C0392B",
+  redDim: "#FADBD8",
+  blue: "#2B6CB0",
 };
 
 const FONT_DISPLAY = "'Space Grotesk', sans-serif";
