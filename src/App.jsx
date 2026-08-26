@@ -1579,13 +1579,26 @@ export default function FleetLedger() {
                             <div style={{ fontSize: 9.5, color: C.textFaint, fontFamily: FONT_MONO, textTransform: "uppercase", marginBottom: 2 }}>
                               Base price/wk
                             </div>
-                            <input
-                              type="number"
-                              value={c.basePricePerWeek}
-                              onChange={(e) => updateContract(c.id, "basePricePerWeek", e.target.value)}
-                              placeholder="0"
-                              style={{ ...inputStyle, width: "100%" }}
-                            />
+                            <div style={{ display: "flex", alignItems: "center", ...inputStyle, padding: 0 }}>
+                              <span style={{ padding: "0 0 0 8px", color: C.textFaint, fontFamily: FONT_MONO, fontSize: 12.5 }}>$</span>
+                              <input
+                                type="number"
+                                value={c.basePricePerWeek}
+                                onChange={(e) => updateContract(c.id, "basePricePerWeek", e.target.value)}
+                                placeholder="0"
+                                style={{
+                                  flex: 1,
+                                  minWidth: 0,
+                                  background: "transparent",
+                                  border: "none",
+                                  outline: "none",
+                                  color: C.text,
+                                  fontFamily: FONT_MONO,
+                                  fontSize: 12.5,
+                                  padding: "7px 8px 7px 4px",
+                                }}
+                              />
+                            </div>
                           </div>
                         </div>
 
@@ -1688,7 +1701,10 @@ export default function FleetLedger() {
                           <span style={{ fontFamily: FONT_MONO, fontSize: 12.5, color: C.text }}>{money(payout)}</span>
                         </Cell>
                         <Cell width={colWidths.base} align="right">
-                          <EditableInput align="right" type="number" value={c.basePricePerWeek} onChange={(v) => updateContract(c.id, "basePricePerWeek", v)} placeholder="0" />
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", width: "100%" }}>
+                            <span style={{ color: C.textFaint, fontFamily: FONT_MONO, fontSize: 12.5, marginRight: 2 }}>$</span>
+                            <EditableInput align="right" type="number" value={c.basePricePerWeek} onChange={(v) => updateContract(c.id, "basePricePerWeek", v)} placeholder="0" />
+                          </div>
                         </Cell>
                         <Cell width={colWidths.payDate}>
                           <EditableInput type="date" value={c.paymentDate} onChange={(v) => updateContract(c.id, "paymentDate", v)} />
