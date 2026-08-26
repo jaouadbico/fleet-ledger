@@ -28,6 +28,12 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,png,svg,ico,webmanifest}"],
+        // Take control immediately on activate instead of waiting for every
+        // open tab to close - Safari in particular is prone to getting
+        // stuck serving an old cached version without this.
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
       },
     }),
   ],
