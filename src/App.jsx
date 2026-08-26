@@ -920,7 +920,8 @@ export default function FleetLedger() {
         ::-webkit-scrollbar-track { background: transparent; }
         input::placeholder { color: ${C.textFaint}; }
         button { cursor: pointer; font-family: ${FONT_BODY}; }
-        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { opacity: 0.3; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       `}</style>
 
       {/* Header */}
