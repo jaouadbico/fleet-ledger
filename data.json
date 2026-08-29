@@ -252,15 +252,5 @@
       "paymentDate": "2026-10-23",
       "paymentStatus": "Pending"
     }
-  ],
-  "expenses": [
-    {
-      "id": "6213c990-bc64-4781-9c65-502c73173b4a",
-      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parking",
-      "description": "whole year",
-      "amount": "3360",
-      "date": ""
-    }
   ]
 }
