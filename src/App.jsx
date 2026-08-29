@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
-import { Truck, Plus, Download, Upload, X, Trash2, Link2, Github, RefreshCw, Settings } from "lucide-react";
+import { Truck, Plus, Download, Upload, X, Trash2, Github, RefreshCw, Settings, Wrench } from "lucide-react";
 
 // ---------- Design tokens ----------
 const C = {
@@ -454,11 +454,6 @@ export default function FleetLedger() {
   const [newTruckName, setNewTruckName] = useState("");
   const fileInputRef = useRef(null);
   const saveTimer = useRef(null);
-  const backupTimer = useRef(null);
-  const [backupHandle, setBackupHandle] = useState(null);
-  const [backupName, setBackupName] = useState("");
-  const [backupStatus, setBackupStatus] = useState("");
-  const fileSystemAccessSupported = typeof window !== "undefined" && "showSaveFilePicker" in window;
 
   const [githubConfig, setGithubConfig] = useState(null);
   const [githubSha, setGithubSha] = useState(null);
@@ -679,53 +674,6 @@ export default function FleetLedger() {
     } catch (e) {
       setGithubStatus("Sync error - " + e.message);
     }
-  };
-
-  // Debounced write to the linked live-backup .xlsx file, when one is set.
-  useEffect(() => {
-    if (!loaded || !backupHandle) return;
-    if (backupTimer.current) clearTimeout(backupTimer.current);
-    backupTimer.current = setTimeout(async () => {
-      try {
-        const wb = buildWorkbook();
-        const arrayBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-        const writable = await backupHandle.createWritable();
-        await writable.write(arrayBuffer);
-        await writable.close();
-        setBackupStatus("Backed up " + new Date().toLocaleTimeString());
-      } catch (e) {
-        setBackupStatus("Backup failed - relink the file");
-        setBackupHandle(null);
-      }
-    }, 700);
-    return () => clearTimeout(backupTimer.current);
-  }, [trucks, contracts, loaded, backupHandle]);
-
-  const linkBackupFile = async () => {
-    try {
-      const handle = await window.showSaveFilePicker({
-        suggestedName: "fleet-ledger-backup.xlsx",
-        types: [
-          {
-            description: "Excel Workbook",
-            accept: {
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
-            },
-          },
-        ],
-      });
-      setBackupHandle(handle);
-      setBackupName(handle.name);
-      setBackupStatus("Linked - writing on every change");
-    } catch (e) {
-      // user cancelled the picker - do nothing
-    }
-  };
-
-  const unlinkBackupFile = () => {
-    setBackupHandle(null);
-    setBackupName("");
-    setBackupStatus("");
   };
 
   const addTruck = () => {
@@ -983,13 +931,33 @@ export default function FleetLedger() {
             </div>
             {!isMobile && (
               <div style={{ fontSize: 11.5, color: C.textDim, fontFamily: FONT_MONO }}>
-                trucks &amp; contracts · optional live .xlsx backup
+                trucks &amp; contracts · synced to GitHub
               </div>
             )}
           </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 10, flexWrap: "wrap" }}>
+          <a
+            href="backoffice.html"
+            title="Open Rig Back-Office — settlements & compliance"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "transparent",
+              border: `1px solid ${C.borderLight}`,
+              color: C.text,
+              borderRadius: 6,
+              padding: isMobile ? "8px 10px" : "8px 12px",
+              fontSize: 12.5,
+              fontWeight: 500,
+              textDecoration: "none",
+            }}
+          >
+            <Wrench size={14} /> {!isMobile && "Back-Office"}
+          </a>
+
           {status && !isMobile && (
             <span style={{ fontSize: 11.5, color: C.textDim, fontFamily: FONT_MONO }}>{status}</span>
           )}
@@ -1055,60 +1023,6 @@ export default function FleetLedger() {
               <Github size={14} /> {!isMobile && "Sync via GitHub"}
             </button>
           )}
-
-          {!isMobile && (fileSystemAccessSupported ? (
-            backupHandle ? (
-              <div
-                title={backupStatus}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 7,
-                  background: C.surfaceAlt,
-                  border: `1px solid ${C.borderLight}`,
-                  borderRadius: 6,
-                  padding: "7px 10px",
-                }}
-              >
-                <span style={{ width: 6, height: 6, borderRadius: 99, background: C.green, flexShrink: 0 }} />
-                <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: C.textDim, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {backupName}
-                </span>
-                <button
-                  onClick={unlinkBackupFile}
-                  title="Unlink backup file"
-                  style={{ background: "transparent", border: "none", color: C.textFaint, padding: 0 }}
-                >
-                  <X size={12} />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={linkBackupFile}
-                title="Pick or create an .xlsx file - every change will be written to it automatically"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  background: "transparent",
-                  border: `1px dashed ${C.borderLight}`,
-                  color: C.textDim,
-                  borderRadius: 6,
-                  padding: "8px 12px",
-                  fontSize: 12.5,
-                }}
-              >
-                <Link2 size={14} /> Link backup .xlsx
-              </button>
-            )
-          ) : (
-            <span
-              title="Live auto-backup to a file needs Chrome or Edge on a computer. On phones and Safari, use Export .xlsx below."
-              style={{ fontSize: 11, color: C.textFaint, fontFamily: FONT_MONO, maxWidth: 150, lineHeight: 1.3 }}
-            >
-              Live backup: Chrome/Edge only
-            </span>
-          ))}
 
           <input
             type="file"
