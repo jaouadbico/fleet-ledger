@@ -155,6 +155,40 @@ function payoutPerWeek(c) {
   return (c.blocks || []).reduce((sum, b) => sum + num(b.price), 0);
 }
 
+// ---------- Expenses ----------
+const EXPENSE_CATEGORIES = [
+  "Fuel",
+  "Parking",
+  "Tolls",
+  "Mechanic / Repairs",
+  "Maintenance",
+  "Insurance",
+  "Permits / Registration",
+  "Tires",
+  "Truck Payment",
+  "Other",
+];
+
+const emptyExpense = (truckId) => ({
+  id: uid(),
+  truckId,
+  category: EXPENSE_CATEGORIES[0],
+  description: "",
+  amount: "",
+  date: "",
+});
+
+function migrateExpense(e) {
+  return {
+    id: e.id || uid(),
+    truckId: e.truckId,
+    category: EXPENSE_CATEGORIES.includes(e.category) ? e.category : "Other",
+    description: e.description || "",
+    amount: e.amount ?? "",
+    date: e.date || "",
+  };
+}
+
 // Upgrades contracts saved by earlier versions of this app (which used
 // block1/block2/block3 flat fields and a single "period" date) into the
 // current shape (a blocks[] array of {qty, price}, periodStart/periodEnd).
@@ -447,7 +481,9 @@ function StatusPill({ value, onChange }) {
 export default function FleetLedger() {
   const [trucks, setTrucks] = useState([]);
   const [contracts, setContracts] = useState([]);
+  const [expenses, setExpenses] = useState([]);
   const [selectedTruckId, setSelectedTruckId] = useState(null);
+  const [activeView, setActiveView] = useState("contracts"); // "contracts" | "expenses"
   const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState("");
   const [newTruckOpen, setNewTruckOpen] = useState(false);
@@ -497,8 +533,10 @@ export default function FleetLedger() {
       const applyData = (data) => {
         const t = data.trucks || [];
         const c = (data.contracts || []).map(migrateContract);
+        const ex = (data.expenses || []).map(migrateExpense);
         setTrucks(t);
         setContracts(c);
+        setExpenses(ex);
         if (t.length > 0) setSelectedTruckId(t[0].id);
       };
 
@@ -551,7 +589,7 @@ export default function FleetLedger() {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       try {
-        await storage.set(STORAGE_KEY, JSON.stringify({ trucks, contracts }));
+        await storage.set(STORAGE_KEY, JSON.stringify({ trucks, contracts, expenses }));
         setStatus("Saved");
         setTimeout(() => setStatus(""), 1200);
       } catch (e) {
@@ -559,7 +597,7 @@ export default function FleetLedger() {
       }
     }, 500);
     return () => clearTimeout(saveTimer.current);
-  }, [trucks, contracts, loaded]);
+  }, [trucks, contracts, expenses, loaded]);
 
   // Debounced push to the linked GitHub data.json whenever data changes.
   useEffect(() => {
@@ -581,7 +619,7 @@ export default function FleetLedger() {
         } catch (e) {
           // fall back to the last-known sha if the pre-check fails
         }
-        const result = await githubPutFile(githubConfig, { trucks, contracts }, sha);
+        const result = await githubPutFile(githubConfig, { trucks, contracts, expenses }, sha);
         setGithubSha(result.content.sha);
         setGithubStatus("Synced " + new Date().toLocaleTimeString());
       } catch (e) {
@@ -589,7 +627,7 @@ export default function FleetLedger() {
       }
     }, 1200);
     return () => clearTimeout(githubSyncTimer.current);
-  }, [trucks, contracts, loaded, githubConfig]);
+  }, [trucks, contracts, expenses, loaded, githubConfig]);
 
   // Re-pull from GitHub whenever the tab/window regains focus, so opening
   // this page on another device picks up changes made elsewhere.
@@ -604,6 +642,7 @@ export default function FleetLedger() {
           suppressNextGithubPush.current = true;
           setTrucks(result.data.trucks || []);
           setContracts((result.data.contracts || []).map(migrateContract));
+          setExpenses((result.data.expenses || []).map(migrateExpense));
           setGithubSha(result.sha);
           setGithubStatus("Synced " + new Date().toLocaleTimeString());
         }
@@ -638,9 +677,10 @@ export default function FleetLedger() {
         suppressNextGithubPush.current = true;
         setTrucks(result.data.trucks || []);
         setContracts((result.data.contracts || []).map(migrateContract));
+        setExpenses((result.data.expenses || []).map(migrateExpense));
         setGithubSha(result.sha);
       } else {
-        const put = await githubPutFile(cfg, { trucks, contracts }, null);
+        const put = await githubPutFile(cfg, { trucks, contracts, expenses }, null);
         setGithubSha(put.content.sha);
       }
       saveGithubConfigLocal(cfg);
@@ -668,6 +708,7 @@ export default function FleetLedger() {
         suppressNextGithubPush.current = true;
         setTrucks(result.data.trucks || []);
         setContracts((result.data.contracts || []).map(migrateContract));
+        setExpenses((result.data.expenses || []).map(migrateExpense));
         setGithubSha(result.sha);
       }
       setGithubStatus("Synced " + new Date().toLocaleTimeString());
@@ -688,7 +729,20 @@ export default function FleetLedger() {
   const deleteTruck = (id) => {
     setTrucks((prev) => prev.filter((t) => t.id !== id));
     setContracts((prev) => prev.filter((c) => c.truckId !== id));
+    setExpenses((prev) => prev.filter((e) => e.truckId !== id));
     setSelectedTruckId((prev) => (prev === id ? null : prev));
+  };
+
+  const addExpense = (truckId) => {
+    setExpenses((prev) => [...prev, emptyExpense(truckId)]);
+  };
+
+  const updateExpense = (id, field, value) => {
+    setExpenses((prev) => prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
+  };
+
+  const deleteExpense = (id) => {
+    setExpenses((prev) => prev.filter((e) => e.id !== id));
   };
 
   const addContract = (truckId) => {
@@ -730,12 +784,31 @@ export default function FleetLedger() {
   };
 
   const truckContracts = contracts.filter((c) => c.truckId === selectedTruckId);
+  const truckExpenses = expenses.filter((e) => e.truckId === selectedTruckId);
   const selectedTruck = trucks.find((t) => t.id === selectedTruckId);
 
   const truckTotals = (truckId) => {
     const list = contracts.filter((c) => c.truckId === truckId);
     return list.reduce((sum, c) => sum + payoutPerWeek(c), 0);
   };
+
+  const truckExpenseTotal = (truckId) => {
+    return expenses.filter((e) => e.truckId === truckId).reduce((sum, e) => sum + num(e.amount), 0);
+  };
+
+  // Groups a truck's expenses by category, in EXPENSE_CATEGORIES order,
+  // each with its list of expenses and a subtotal. Empty categories are
+  // skipped.
+  function groupExpensesByCategory(list) {
+    const groups = EXPENSE_CATEGORIES.map((cat) => ({
+      category: cat,
+      items: list.filter((e) => e.category === cat),
+    })).filter((g) => g.items.length > 0);
+    return groups.map((g) => ({
+      ...g,
+      subtotal: g.items.reduce((sum, e) => sum + num(e.amount), 0),
+    }));
+  }
 
   const buildWorkbook = () => {
     const contractRows = [];
@@ -766,14 +839,28 @@ export default function FleetLedger() {
       "Truck": t.name,
       "Contracts": contracts.filter((c) => c.truckId === t.id).length,
       "Total Payout per Week": truckTotals(t.id),
+      "Total Expenses": truckExpenseTotal(t.id),
     }));
+
+    const expenseRows = expenses.map((e) => {
+      const truck = trucks.find((t) => t.id === e.truckId);
+      return {
+        "Truck": truck ? truck.name : "(unknown truck)",
+        "Category": e.category,
+        "Description": e.description,
+        "Amount": num(e.amount),
+        "Date": e.date,
+      };
+    });
 
     const wb = XLSX.utils.book_new();
     // "Contracts" is added first so it's the sheet that opens by default -
     // it mirrors the on-screen table column-for-column.
     const wsContracts = XLSX.utils.json_to_sheet(contractRows);
+    const wsExpenses = XLSX.utils.json_to_sheet(expenseRows);
     const wsTrucks = XLSX.utils.json_to_sheet(truckSheet);
     XLSX.utils.book_append_sheet(wb, wsContracts, "Contracts");
+    XLSX.utils.book_append_sheet(wb, wsExpenses, "Expenses");
     XLSX.utils.book_append_sheet(wb, wsTrucks, "Truck Summary");
     return wb;
   };
@@ -847,8 +934,20 @@ export default function FleetLedger() {
           blocks: c.blocks.length > 0 ? c.blocks : [emptyBlock()],
         }));
 
+        const expensesSheetName = wb.SheetNames.find((n) => n.toLowerCase() === "expenses");
+        const rawExpenses = expensesSheetName ? XLSX.utils.sheet_to_json(wb.Sheets[expensesSheetName]) : [];
+        const newExpenses = rawExpenses.map((r) => ({
+          id: uid(),
+          truckId: truckIdFor(r["Truck"] || "(unknown truck)"),
+          category: EXPENSE_CATEGORIES.includes(r["Category"]) ? r["Category"] : "Other",
+          description: r["Description"] || "",
+          amount: r["Amount"] ?? "",
+          date: r["Date"] ? String(r["Date"]) : "",
+        }));
+
         setTrucks(newTrucks);
         setContracts(newContracts);
+        setExpenses(newExpenses);
         if (newTrucks.length > 0) setSelectedTruckId(newTrucks[0].id);
         setStatus("Imported");
         setTimeout(() => setStatus(""), 1500);
@@ -1420,11 +1519,49 @@ export default function FleetLedger() {
                       {truckContracts.filter((c) => c.paymentStatus !== "Paid").length}
                     </div>
                   </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 10.5, color: C.textFaint, fontFamily: FONT_MONO, textTransform: "uppercase" }}>Expenses</div>
+                    <div style={{ fontFamily: FONT_DISPLAY, fontSize: 18, fontWeight: 600, color: C.red }}>
+                      {money(truckExpenseTotal(selectedTruck.id))}
+                    </div>
+                  </div>
                 </div>
               </div>
 
+              {/* View tabs */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: 6,
+                  padding: isMobile ? "10px 14px 0" : "14px 24px 0",
+                }}
+              >
+                {[
+                  { key: "contracts", label: "Contracts" },
+                  { key: "expenses", label: "Expenses" },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveView(tab.key)}
+                    style={{
+                      background: activeView === tab.key ? C.surfaceAlt : "transparent",
+                      border: `1px solid ${activeView === tab.key ? C.borderLight : "transparent"}`,
+                      borderBottom: activeView === tab.key ? `2px solid ${C.amber}` : "2px solid transparent",
+                      color: activeView === tab.key ? C.text : C.textDim,
+                      borderRadius: "6px 6px 0 0",
+                      padding: "8px 16px",
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      fontFamily: FONT_DISPLAY,
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
               {/* Contracts */}
-              {isMobile ? (
+              {activeView === "contracts" && (isMobile ? (
                 <div style={{ flex: 1, overflow: "auto", padding: "14px 14px 24px" }}>
                   {truckContracts.map((c) => {
                     const payout = payoutPerWeek(c);
@@ -1696,7 +1833,244 @@ export default function FleetLedger() {
                   </button>
                 </div>
               </div>
-              )}
+              ))}
+
+              {/* Expenses */}
+              {activeView === "expenses" && (isMobile ? (
+                <div style={{ flex: 1, overflow: "auto", padding: "14px 14px 24px" }}>
+                  {groupExpensesByCategory(truckExpenses).map((group) => (
+                    <div key={group.category} style={{ marginBottom: 18 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: 8,
+                        }}
+                      >
+                        <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 13.5 }}>{group.category}</div>
+                        <div style={{ fontFamily: FONT_MONO, fontSize: 13, fontWeight: 600, color: C.red }}>
+                          {money(group.subtotal)}
+                        </div>
+                      </div>
+                      {group.items.map((exp) => (
+                        <div
+                          key={exp.id}
+                          style={{
+                            background: C.surfaceAlt,
+                            border: `1px solid ${C.border}`,
+                            borderRadius: 8,
+                            padding: 10,
+                            marginBottom: 8,
+                          }}
+                        >
+                          <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+                            <select
+                              value={exp.category}
+                              onChange={(ev) => updateExpense(exp.id, "category", ev.target.value)}
+                              style={{ ...inputStyle, flex: 1 }}
+                            >
+                              {EXPENSE_CATEGORIES.map((cat) => (
+                                <option key={cat} value={cat}>{cat}</option>
+                              ))}
+                            </select>
+                            <button
+                              onClick={() => deleteExpense(exp.id)}
+                              style={{ background: "transparent", border: "none", color: C.textFaint, padding: 4 }}
+                              title="Delete expense"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                          <input
+                            value={exp.description}
+                            onChange={(ev) => updateExpense(exp.id, "description", ev.target.value)}
+                            placeholder="Description (e.g. Pilot #212)"
+                            style={{ ...inputStyle, width: "100%", marginBottom: 6 }}
+                          />
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <div style={{ display: "flex", alignItems: "center", ...inputStyle, padding: 0, flex: 1 }}>
+                              <span style={{ padding: "0 0 0 8px", color: C.textFaint, fontFamily: FONT_MONO, fontSize: 12.5 }}>$</span>
+                              <CurrencyInput
+                                value={exp.amount}
+                                onChange={(v) => updateExpense(exp.id, "amount", v)}
+                                style={{
+                                  flex: 1,
+                                  minWidth: 0,
+                                  background: "transparent",
+                                  border: "none",
+                                  outline: "none",
+                                  color: C.text,
+                                  fontFamily: FONT_MONO,
+                                  fontSize: 12.5,
+                                  padding: "7px 8px 7px 4px",
+                                }}
+                              />
+                            </div>
+                            <input
+                              type="date"
+                              value={exp.date}
+                              onChange={(ev) => updateExpense(exp.id, "date", ev.target.value)}
+                              style={{ ...inputStyle, flex: 1 }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+
+                  {truckExpenses.length === 0 && (
+                    <div style={{ fontSize: 12.5, color: C.textFaint, padding: "20px 4px", textAlign: "center" }}>
+                      No expenses logged yet for this truck.
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => addExpense(selectedTruck.id)}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                      background: "transparent",
+                      border: `1px dashed ${C.borderLight}`,
+                      color: C.textDim,
+                      borderRadius: 6,
+                      padding: "12px 14px",
+                      fontSize: 13,
+                    }}
+                  >
+                    <Plus size={14} /> Add expense
+                  </button>
+                </div>
+              ) : (
+                <div style={{ flex: 1, overflow: "auto", padding: "0 24px 24px" }}>
+                  <div style={{ minWidth: 640, marginTop: 14 }}>
+                    {groupExpensesByCategory(truckExpenses).map((group) => (
+                      <div key={group.category} style={{ marginBottom: 20 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            padding: "6px 0",
+                            borderBottom: `1px solid ${C.border}`,
+                            marginBottom: 4,
+                          }}
+                        >
+                          <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 14 }}>{group.category}</div>
+                          <div style={{ fontFamily: FONT_MONO, fontSize: 13.5, fontWeight: 600, color: C.red }}>
+                            {money(group.subtotal)}
+                          </div>
+                        </div>
+                        {group.items.map((exp) => (
+                          <div
+                            key={exp.id}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 10,
+                              padding: "8px 0",
+                              borderBottom: `1px solid ${C.border}`,
+                            }}
+                          >
+                            <select
+                              value={exp.category}
+                              onChange={(ev) => updateExpense(exp.id, "category", ev.target.value)}
+                              style={{ ...inputStyle, width: 170, flexShrink: 0 }}
+                            >
+                              {EXPENSE_CATEGORIES.map((cat) => (
+                                <option key={cat} value={cat}>{cat}</option>
+                              ))}
+                            </select>
+                            <input
+                              value={exp.description}
+                              onChange={(ev) => updateExpense(exp.id, "description", ev.target.value)}
+                              placeholder="Description"
+                              style={{
+                                flex: 1,
+                                background: "transparent",
+                                border: "none",
+                                outline: "none",
+                                color: C.text,
+                                fontFamily: FONT_BODY,
+                                fontSize: 12.5,
+                                padding: "8px 4px",
+                              }}
+                            />
+                            <div style={{ display: "flex", alignItems: "center", width: 120, flexShrink: 0 }}>
+                              <span style={{ color: C.textFaint, fontFamily: FONT_MONO, fontSize: 12.5, marginRight: 2 }}>$</span>
+                              <CurrencyInput
+                                value={exp.amount}
+                                onChange={(v) => updateExpense(exp.id, "amount", v)}
+                                style={{
+                                  width: "100%",
+                                  background: "transparent",
+                                  border: "none",
+                                  outline: "none",
+                                  color: C.text,
+                                  fontFamily: FONT_MONO,
+                                  fontSize: 12.5,
+                                  textAlign: "right",
+                                  padding: "8px 4px",
+                                }}
+                              />
+                            </div>
+                            <input
+                              type="date"
+                              value={exp.date}
+                              onChange={(ev) => updateExpense(exp.id, "date", ev.target.value)}
+                              style={{
+                                width: 140,
+                                flexShrink: 0,
+                                background: "transparent",
+                                border: "none",
+                                outline: "none",
+                                color: C.textDim,
+                                fontFamily: FONT_MONO,
+                                fontSize: 12,
+                                padding: "8px 4px",
+                              }}
+                            />
+                            <button
+                              onClick={() => deleteExpense(exp.id)}
+                              style={{ background: "transparent", border: "none", color: C.textFaint, padding: 4, flexShrink: 0 }}
+                              title="Delete expense"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+
+                    {truckExpenses.length === 0 && (
+                      <div style={{ fontSize: 12.5, color: C.textFaint, padding: "20px 4px" }}>
+                        No expenses logged yet for this truck.
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => addExpense(selectedTruck.id)}
+                      style={{
+                        marginTop: 4,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        background: "transparent",
+                        border: `1px dashed ${C.borderLight}`,
+                        color: C.textDim,
+                        borderRadius: 6,
+                        padding: "9px 14px",
+                        fontSize: 12.5,
+                      }}
+                    >
+                      <Plus size={14} /> Add expense
+                    </button>
+                  </div>
+                </div>
+              ))}
             </>
           )}
         </div>
