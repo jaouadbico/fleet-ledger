@@ -479,8 +479,34 @@
       </div>
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
+      <span id="githubStatus" style="font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--text-dim);"></span>
+      <button class="chip-btn" id="githubSyncBtn" onclick="if(githubConfig){ manualSyncGithub(); } else { openGithubPanel(); }" ondblclick="openGithubPanel()" title="Click to sync now, double-click to change connection">
+        <span id="githubSyncDot" style="display:none; width:6px; height:6px; border-radius:99px; background:var(--green); margin-right:6px;"></span>
+        <span id="githubSyncLabel">Sync via GitHub</span>
+      </button>
       <button class="chip-btn" id="apiKeyBtn" onclick="openApiKeyPanel()">Connect API Key</button>
       <div class="odometer"><span id="clockOut">--</span></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="githubPanel" onclick="if(event.target===this) closeGithubPanel()">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>Sync via GitHub</h3>
+        <button class="modal-x" onclick="closeGithubPanel()">&times;</button>
+      </div>
+      <p class="modal-desc">
+        Stores compliance dates in a <code>backoffice-data.json</code> file in your repo, so they show up on any device connected here &mdash; same idea as Fleet Ledger's sync.
+      </p>
+      <p class="modal-desc" id="githubInheritedNote" style="display:none; color:var(--green);"></p>
+      <input type="text" id="ghOwnerInput" class="modal-input" placeholder="GitHub username">
+      <input type="text" id="ghRepoInput" class="modal-input" placeholder="Repository name (e.g. fleet-ledger)">
+      <input type="text" id="ghBranchInput" class="modal-input" placeholder="Branch" value="main">
+      <input type="password" id="ghTokenInput" class="modal-input" placeholder="Personal access token">
+      <div class="modal-actions">
+        <button class="generate-btn" style="flex:1;" onclick="connectGithubFromPanel()">Connect</button>
+        <button class="chip-btn" onclick="disconnectGithubFromPanel()">Disconnect</button>
+      </div>
     </div>
   </div>
 
@@ -638,6 +664,229 @@ function updateKeyIndicator(){
   btn.textContent = has ? 'API Key: Connected' : 'Connect API Key';
   btn.classList.toggle('connected', has);
 }
+
+// ---- GitHub Sync (compliance dates) ----
+// Same idea as the Fleet Ledger tracker: a data file in your GitHub repo
+// is the shared source of truth, so compliance dates show up on any
+// device you connect here. If you already connected GitHub Sync in the
+// main Fleet Ledger app, this page picks up that same owner/repo/token
+// automatically (same-origin localStorage) and just uses its own file
+// name so it doesn't collide with the tracker's data.json.
+const FLEET_LEDGER_GITHUB_KEY = 'fleet-ledger-github-config';
+const BACKOFFICE_GITHUB_KEY = 'backoffice:github-config';
+const BACKOFFICE_DATA_PATH = 'backoffice-data.json';
+
+let githubConfig = null;
+let githubSha = null;
+let githubPushTimer = null;
+let suppressNextGithubPush = false;
+
+function loadGithubConfig(){
+  try{
+    const own = localStorage.getItem(BACKOFFICE_GITHUB_KEY);
+    if(own) return { ...JSON.parse(own), inherited: false };
+  }catch(e){}
+  try{
+    const shared = localStorage.getItem(FLEET_LEDGER_GITHUB_KEY);
+    if(shared){
+      const cfg = JSON.parse(shared);
+      return {
+        owner: cfg.owner,
+        repo: cfg.repo,
+        branch: cfg.branch || 'main',
+        token: cfg.token,
+        path: BACKOFFICE_DATA_PATH,
+        inherited: true,
+      };
+    }
+  }catch(e){}
+  return null;
+}
+
+async function githubGetFile(cfg){
+  const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.path}?ref=${encodeURIComponent(cfg.branch)}`;
+  const res = await fetch(url, {
+    headers: { Authorization: `token ${cfg.token}`, Accept: 'application/vnd.github+json' },
+  });
+  if(res.status === 404) return { exists: false, sha: null, data: null };
+  if(!res.ok){
+    const body = await res.json().catch(()=>({}));
+    throw new Error(`GitHub read failed (${res.status}): ${body.message || res.statusText}`);
+  }
+  const json = await res.json();
+  const decoded = decodeURIComponent(escape(atob(json.content.replace(/\n/g,''))));
+  return { exists: true, sha: json.sha, data: JSON.parse(decoded) };
+}
+
+async function githubPutFile(cfg, dataObj, sha){
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(dataObj, null, 2))));
+  const res = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.path}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `token ${cfg.token}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message: 'Update back-office data',
+      content,
+      branch: cfg.branch,
+      ...(sha ? { sha } : {}),
+    }),
+  });
+  if(!res.ok){
+    const body = await res.json().catch(()=>({}));
+    throw new Error(`GitHub write failed (${res.status}): ${body.message || res.statusText}`);
+  }
+  return res.json();
+}
+
+function setGithubStatus(text){
+  const el = document.getElementById('githubStatus');
+  if(el) el.textContent = text;
+}
+
+function updateGithubIndicator(){
+  const btn = document.getElementById('githubSyncBtn');
+  const dot = document.getElementById('githubSyncDot');
+  const label = document.getElementById('githubSyncLabel');
+  if(githubConfig){
+    btn.classList.add('connected');
+    dot.style.display = 'inline-block';
+    label.textContent = githubConfig.inherited
+      ? `${githubConfig.owner}/${githubConfig.repo} (shared)`
+      : `${githubConfig.owner}/${githubConfig.repo}`;
+  }else{
+    btn.classList.remove('connected');
+    dot.style.display = 'none';
+    label.textContent = 'Sync via GitHub';
+  }
+}
+
+async function pullComplianceFromGithub(showStatus){
+  if(!githubConfig) return;
+  if(showStatus) setGithubStatus('Syncing...');
+  try{
+    const result = await githubGetFile(githubConfig);
+    if(result.exists){
+      suppressNextGithubPush = true;
+      const values = result.data.complianceDates || {};
+      gaugeDefs.forEach(g => {
+        if(values[g.id]) document.getElementById(g.id).value = values[g.id];
+      });
+      renderGauges();
+      checkAlerts();
+      githubSha = result.sha;
+      setGithubStatus('Synced ' + new Date().toLocaleTimeString());
+    }else{
+      setGithubStatus('No backoffice-data.json yet - will create on first save');
+    }
+  }catch(e){
+    setGithubStatus('Sync error - ' + e.message);
+  }
+}
+
+async function pushComplianceToGithub(){
+  if(!githubConfig) return;
+  if(suppressNextGithubPush){ suppressNextGithubPush = false; return; }
+  if(githubPushTimer) clearTimeout(githubPushTimer);
+  githubPushTimer = setTimeout(async () => {
+    setGithubStatus('Syncing...');
+    try{
+      const values = {};
+      gaugeDefs.forEach(g => values[g.id] = document.getElementById(g.id).value);
+      let sha = githubSha;
+      try{
+        const fresh = await githubGetFile(githubConfig);
+        sha = fresh.exists ? fresh.sha : null;
+      }catch(e){ /* fall back to last-known sha */ }
+      const result = await githubPutFile(githubConfig, { complianceDates: values }, sha);
+      githubSha = result.content.sha;
+      setGithubStatus('Synced ' + new Date().toLocaleTimeString());
+    }catch(e){
+      setGithubStatus('Sync error - ' + e.message);
+    }
+  }, 1200);
+}
+
+function openGithubPanel(){
+  githubConfig = loadGithubConfig();
+  const inheritedNote = document.getElementById('githubInheritedNote');
+  if(githubConfig && githubConfig.inherited){
+    inheritedNote.style.display = 'block';
+    inheritedNote.textContent = `Using the GitHub connection already saved from Fleet Ledger (${githubConfig.owner}/${githubConfig.repo}). You can override it below if you want this page to use a different repo or token.`;
+  }else{
+    inheritedNote.style.display = 'none';
+  }
+  document.getElementById('ghOwnerInput').value = githubConfig ? githubConfig.owner : '';
+  document.getElementById('ghRepoInput').value = githubConfig ? githubConfig.repo : '';
+  document.getElementById('ghBranchInput').value = (githubConfig && githubConfig.branch) || 'main';
+  document.getElementById('ghTokenInput').value = (githubConfig && !githubConfig.inherited) ? githubConfig.token : '';
+  document.getElementById('githubPanel').classList.add('show');
+}
+function closeGithubPanel(){
+  document.getElementById('githubPanel').classList.remove('show');
+}
+
+async function connectGithubFromPanel(){
+  const owner = document.getElementById('ghOwnerInput').value.trim();
+  const repo = document.getElementById('ghRepoInput').value.trim();
+  const branch = document.getElementById('ghBranchInput').value.trim() || 'main';
+  const token = document.getElementById('ghTokenInput').value.trim();
+
+  if(!owner || !repo || !token){
+    setGithubStatus('Fill in owner, repo, and token.');
+    return;
+  }
+  const cfg = { owner, repo, branch, token, path: BACKOFFICE_DATA_PATH };
+  setGithubStatus('Connecting...');
+  try{
+    const result = await githubGetFile(cfg);
+    if(result.exists){
+      const values = result.data.complianceDates || {};
+      gaugeDefs.forEach(g => {
+        if(values[g.id]) document.getElementById(g.id).value = values[g.id];
+      });
+      renderGauges();
+      checkAlerts();
+      githubSha = result.sha;
+    }else{
+      const values = {};
+      gaugeDefs.forEach(g => values[g.id] = document.getElementById(g.id).value);
+      const put = await githubPutFile(cfg, { complianceDates: values }, null);
+      githubSha = put.content.sha;
+    }
+    localStorage.setItem(BACKOFFICE_GITHUB_KEY, JSON.stringify(cfg));
+    githubConfig = { ...cfg, inherited: false };
+    updateGithubIndicator();
+    setGithubStatus('Connected');
+    closeGithubPanel();
+  }catch(e){
+    setGithubStatus('Connection failed - ' + e.message);
+  }
+}
+
+function disconnectGithubFromPanel(){
+  localStorage.removeItem(BACKOFFICE_GITHUB_KEY);
+  githubConfig = loadGithubConfig(); // falls back to inherited Fleet Ledger config, if any
+  githubSha = null;
+  updateGithubIndicator();
+  setGithubStatus(githubConfig ? 'Using shared Fleet Ledger connection' : '');
+  closeGithubPanel();
+}
+
+async function manualSyncGithub(){
+  await pullComplianceFromGithub(true);
+}
+
+// Re-pull whenever the tab/window regains focus, so changes made on
+// another device show up here too.
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && githubConfig) pullComplianceFromGithub(false);
+});
+window.addEventListener('focus', () => {
+  if(githubConfig) pullComplianceFromGithub(false);
+});
 
 const samples = {
   1: "Load Confirmation #48213\nBroker: XYZ Logistics\nOrigin: Charlotte, NC  |  Dest: Knoxville, TN\nDistance: 208 mi\nLine haul rate: $612.00 (flat)\nFuel surcharge: $38.50\nPickup: 08/26  |  Delivery: 08/27\nDriver: J. Aouad  |  Truck #: 114\nTerms: Net 15 after POD",
@@ -841,6 +1090,7 @@ async function saveDates(){
   try{
     await storage.set('compliance-dates', JSON.stringify(values));
   }catch(e){ console.error('Storage save failed', e); }
+  pushComplianceToGithub();
 }
 
 async function loadDates(){
@@ -937,6 +1187,10 @@ setInterval(checkAlerts, 60*60*1000);
 // ---- Init: load saved dates, or seed example dates on first run ----
 (async function init(){
   updateKeyIndicator();
+  githubConfig = loadGithubConfig();
+  updateGithubIndicator();
+  if(githubConfig) setGithubStatus(githubConfig.inherited ? 'Using shared Fleet Ledger connection' : '');
+
   const hadSaved = await loadDates();
   if(!hadSaved){
     const today = new Date();
@@ -949,6 +1203,8 @@ setInterval(checkAlerts, 60*60*1000);
   }
   renderGauges();
   checkAlerts();
+
+  if(githubConfig) await pullComplianceFromGithub(true);
 })();
 </script>
 </body>
