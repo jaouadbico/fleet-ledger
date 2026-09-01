@@ -269,6 +269,14 @@
       "description": "",
       "amount": "",
       "date": ""
+    },
+    {
+      "id": "9728a89d-bfa1-426f-be2d-ebbdab2123e4",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "category": "Fuel",
+      "description": "",
+      "amount": "",
+      "date": ""
     }
   ]
 }
