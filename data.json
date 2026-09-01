@@ -416,7 +416,7 @@
     {
       "id": "dd0b85a0-c4c9-47f6-9297-d0adf2e64f44",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Other",
+      "category": "Mechanic / Repairs",
       "description": "Invoice XA405560981",
       "amount": "397.71",
       "date": ""
@@ -480,7 +480,7 @@
     {
       "id": "4975fd79-5b11-4fd7-b3e8-c2e65b6cedb1",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Other",
+      "category": "Mechanic / Repairs",
       "description": "Invoice XA405585139",
       "amount": "281.72",
       "date": ""
