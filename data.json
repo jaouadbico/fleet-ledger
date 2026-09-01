@@ -290,13 +290,14 @@
       "id": "b9277a5c-d0fb-4b25-982a-0a422da870a9",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
       "contactId": "C-0002MYY2J",
-      "periodStart": "2026-06-01",
+      "periodStart": "2027-06-01",
       "periodEnd": "",
       "blocks": [
         {
           "id": "b19ace71-c9a8-4f08-99d6-10a3e94e0f16",
           "qty": "1",
           "price": "",
+          "note": "",
           "day": "",
           "time": ""
         },
@@ -304,6 +305,7 @@
           "id": "3f9ed9f8-eb3b-4fa1-b41e-e95af28189d5",
           "qty": "1",
           "price": "",
+          "note": "",
           "day": "",
           "time": ""
         },
@@ -311,6 +313,7 @@
           "id": "c1975a67-c7b1-4971-9332-0b6414250379",
           "qty": "1",
           "price": "",
+          "note": "",
           "day": "",
           "time": ""
         }
