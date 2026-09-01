@@ -149,23 +149,7 @@
     display:block;
     margin-bottom:6px;
   }
-  textarea{
-    width:100%;
-    min-height:190px;
-    background:var(--panel-2);
-    border:1px solid var(--border);
-    border-radius:3px;
-    color:var(--text);
-    font-family:'JetBrains Mono',monospace;
-    font-size:16px;
-    line-height:1.5;
-    padding:12px;
-    resize:vertical;
-  }
-  textarea:focus{outline:1px solid var(--amber);}
-  textarea::placeholder{color:#565b64;}
 
-  .sample-row{display:flex; gap:8px; margin:10px 0 16px; flex-wrap:wrap;}
   .chip-btn{
     background:transparent;
     border:1px solid var(--border);
@@ -240,50 +224,6 @@
   }
   .generate-btn:hover{filter:brightness(1.1);}
   .generate-btn:disabled{background:var(--border); color:var(--text-dim); cursor:wait;}
-
-  .status-line{
-    font-family:'JetBrains Mono',monospace;
-    font-size:11px;
-    color:var(--text-dim);
-    margin-top:10px;
-    min-height:14px;
-  }
-  .status-line.error{color:var(--red);}
-  .status-line.ok{color:var(--green);}
-
-  /* ---- Settlement output ---- */
-  .empty-state{
-    color:var(--text-dim);
-    font-size:13px;
-    padding:40px 10px;
-    text-align:center;
-    border:1px dashed var(--border);
-    border-radius:3px;
-    line-height:1.6;
-  }
-  .settlement{font-family:'JetBrains Mono',monospace; font-size:12.5px;}
-  .settlement-head{
-    display:flex; justify-content:space-between;
-    border-bottom:1px solid var(--border);
-    padding-bottom:10px; margin-bottom:10px;
-    font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px;
-  }
-  .settlement-head b{color:var(--text); font-family:'Oswald',sans-serif; font-size:16px; text-transform:none; letter-spacing:0;}
-  .line-item{
-    display:flex; justify-content:space-between;
-    padding:7px 0;
-    border-bottom:1px solid var(--panel-2);
-  }
-  .line-item.deduction{color:var(--red);}
-  .line-item .lbl{color:var(--text-dim);}
-  .settlement-total{
-    display:flex; justify-content:space-between;
-    padding-top:12px; margin-top:6px;
-    border-top:2px solid var(--amber);
-    font-family:'Oswald',sans-serif;
-    font-size:17px; font-weight:600;
-  }
-  .settlement-total span:last-child{color:var(--amber);}
 
   /* ---- Compliance cluster ---- */
   .compliance-panel{margin-bottom:0;}
@@ -425,17 +365,12 @@
     .grid{gap:14px; margin-bottom:14px;}
     .panel{padding:14px;}
     .panel h2{font-size:13px;}
-    textarea{min-height:150px; font-size:16px;}
-    .sample-row{gap:6px;}
     .chip-btn{
       flex:1 1 auto;
       min-height:38px;
       font-size:10px;
       padding:8px 8px;
     }
-    .settlement{font-size:12px;}
-    .settlement-head b{font-size:15px;}
-    .settlement-total{font-size:16px;}
     .fleet-inputs{grid-template-columns:1fr 1fr; gap:10px;}
     .alert-banner{
       flex-direction:column;
@@ -484,7 +419,6 @@
         <span id="githubSyncDot" style="display:none; width:6px; height:6px; border-radius:99px; background:var(--green); margin-right:6px;"></span>
         <span id="githubSyncLabel">Sync via GitHub</span>
       </button>
-      <button class="chip-btn" id="apiKeyBtn" onclick="openApiKeyPanel()">Connect API Key</button>
       <div class="odometer"><span id="clockOut">--</span></div>
     </div>
   </div>
@@ -506,58 +440,6 @@
       <div class="modal-actions">
         <button class="generate-btn" style="flex:1;" onclick="connectGithubFromPanel()">Connect</button>
         <button class="chip-btn" onclick="disconnectGithubFromPanel()">Disconnect</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="apiKeyPanel" onclick="if(event.target===this) closeApiKeyPanel()">
-    <div class="modal-box">
-      <div class="modal-head">
-        <h3>Anthropic API Key</h3>
-        <button class="modal-x" onclick="closeApiKeyPanel()">&times;</button>
-      </div>
-      <p class="modal-desc">
-        Needed to run the settlement generator. Get one at
-        <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>.
-        Stored only in this browser &mdash; never sent anywhere except directly to Anthropic's API.
-      </p>
-      <input type="password" id="apiKeyInput" class="modal-input" placeholder="sk-ant-...">
-      <div class="modal-status" id="apiKeyStatus"></div>
-      <div class="modal-actions">
-        <button class="generate-btn" style="flex:1;" onclick="saveApiKeyFromPanel()">Save Key</button>
-        <button class="chip-btn" onclick="removeApiKeyFromPanel()">Remove</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid">
-    <div class="panel">
-      <div class="panel-head">
-        <h2>Load Documents In</h2>
-        <span class="panel-eyebrow">BOL / POD / FUEL / LOAD CONF</span>
-      </div>
-      <label class="field-label">Paste document text</label>
-      <textarea id="docInput" placeholder="Paste a BOL, POD, fuel receipt, or load confirmation here — plain text, email forward, whatever you've got...
-
-Example: 'Load #48213. Origin: Charlotte NC. Dest: Knoxville TN. 208 mi. Rate: $612.00 flat. Fuel surcharge $38.50. Broker: XYZ Logistics. Delivered 8/27, POD signed.'"></textarea>
-
-      <div class="sample-row">
-        <button class="chip-btn" onclick="loadSample(1)">Sample: Load Conf</button>
-        <button class="chip-btn" onclick="loadSample(2)">Sample: Fuel Receipt</button>
-        <button class="chip-btn" onclick="loadSample(3)">Sample: BOL + POD</button>
-      </div>
-
-      <button class="generate-btn" id="genBtn" onclick="generateSettlement()">Generate Settlement</button>
-      <div class="status-line" id="statusLine"></div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head">
-        <h2>Settlement Sheet</h2>
-        <span class="panel-eyebrow">AUTO-GENERATED</span>
-      </div>
-      <div id="settlementOutput">
-        <div class="empty-state">Paste a document on the left and hit Generate.<br>The AI extracts load #, rate, deductions, and dates — then builds the sheet.</div>
       </div>
     </div>
   </div>
@@ -621,49 +503,6 @@ const storage = {
     return { value };
   }
 };
-
-// ---- Anthropic API key (bring-your-own-key, stored only in this browser) ----
-const API_KEY_STORAGE = 'backoffice:anthropic-api-key';
-function getApiKey(){
-  try{ return localStorage.getItem(API_KEY_STORAGE) || ''; }catch(e){ return ''; }
-}
-function saveApiKey(key){
-  localStorage.setItem(API_KEY_STORAGE, key.trim());
-}
-function clearApiKey(){
-  localStorage.removeItem(API_KEY_STORAGE);
-}
-
-function openApiKeyPanel(){
-  document.getElementById('apiKeyInput').value = getApiKey();
-  document.getElementById('apiKeyPanel').classList.add('show');
-}
-function closeApiKeyPanel(){
-  document.getElementById('apiKeyPanel').classList.remove('show');
-}
-function saveApiKeyFromPanel(){
-  const val = document.getElementById('apiKeyInput').value.trim();
-  if(!val){
-    document.getElementById('apiKeyStatus').textContent = 'Paste a key first.';
-    return;
-  }
-  saveApiKey(val);
-  document.getElementById('apiKeyStatus').textContent = 'Saved to this browser.';
-  updateKeyIndicator();
-  setTimeout(closeApiKeyPanel, 700);
-}
-function removeApiKeyFromPanel(){
-  clearApiKey();
-  document.getElementById('apiKeyInput').value = '';
-  document.getElementById('apiKeyStatus').textContent = 'Key removed.';
-  updateKeyIndicator();
-}
-function updateKeyIndicator(){
-  const has = !!getApiKey();
-  const btn = document.getElementById('apiKeyBtn');
-  btn.textContent = has ? 'API Key: Connected' : 'Connect API Key';
-  btn.classList.toggle('connected', has);
-}
 
 // ---- GitHub Sync (compliance dates) ----
 // Same idea as the Fleet Ledger tracker: a data file in your GitHub repo
@@ -888,140 +727,6 @@ window.addEventListener('focus', () => {
   if(githubConfig) pullComplianceFromGithub(false);
 });
 
-const samples = {
-  1: "Load Confirmation #48213\nBroker: XYZ Logistics\nOrigin: Charlotte, NC  |  Dest: Knoxville, TN\nDistance: 208 mi\nLine haul rate: $612.00 (flat)\nFuel surcharge: $38.50\nPickup: 08/26  |  Delivery: 08/27\nDriver: J. Aouad  |  Truck #: 114\nTerms: Net 15 after POD",
-  2: "Fuel Receipt - Pilot Flying J #212\nDate: 08/26\nTruck #: 114\nGallons: 142.3 @ $3.71/gal\nTotal: $527.93\nState: TN",
-  3: "BILL OF LADING\nShipper: ABC Freight Co.\nConsignee: Knoxville Distribution Center\nLoad #48213 | Truck #114 | Driver: J. Aouad\nWeight: 42,100 lbs\nPOD Notes: Delivered 08/27, 14:20, signed by R. Malone, no damage noted, on time."
-};
-function loadSample(n){ document.getElementById('docInput').value = samples[n]; }
-
-async function generateSettlement(){
-  const doc = document.getElementById('docInput').value.trim();
-  const statusLine = document.getElementById('statusLine');
-  const btn = document.getElementById('genBtn');
-  const out = document.getElementById('settlementOutput');
-
-  if(!doc){
-    statusLine.textContent = 'Paste a document first.';
-    statusLine.className = 'status-line error';
-    return;
-  }
-
-  const apiKey = getApiKey();
-  if(!apiKey){
-    statusLine.textContent = 'Connect your Anthropic API key first (button, top right).';
-    statusLine.className = 'status-line error';
-    openApiKeyPanel();
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Reading document...';
-  statusLine.textContent = 'Extracting load data...';
-  statusLine.className = 'status-line';
-
-  const systemPrompt = `You extract structured settlement data from trucking documents (load confirmations, BOLs, PODs, fuel receipts). Respond ONLY with raw JSON, no markdown fences, no preamble. Use this exact shape:
-{
-  "load_number": string or null,
-  "driver": string or null,
-  "truck": string or null,
-  "origin": string or null,
-  "destination": string or null,
-  "distance_mi": number or null,
-  "line_haul": number or null,
-  "fuel_surcharge": number or null,
-  "fuel_deduction": number or null,
-  "other_deductions": [{"label": string, "amount": number}],
-  "delivery_date": string or null,
-  "pod_confirmed": boolean,
-  "notes": string or null
-}
-If a field isn't present in the document, use null (or empty array for other_deductions). Infer nothing you can't support from the text.`;
-
-  try{
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-5",
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{ role: "user", content: doc }]
-      })
-    });
-    if(!response.ok){
-      const errBody = await response.json().catch(()=>({}));
-      throw new Error(errBody?.error?.message || ('API error ' + response.status));
-    }
-    const data = await response.json();
-    const textBlock = (data.content || []).find(b => b.type === 'text');
-    if(!textBlock) throw new Error('No response from model');
-    let clean = textBlock.text.replace(/```json|```/g,'').trim();
-    const parsed = JSON.parse(clean);
-    renderSettlement(parsed);
-    statusLine.textContent = 'Settlement generated.';
-    statusLine.className = 'status-line ok';
-  }catch(err){
-    console.error(err);
-    statusLine.textContent = err.message && err.message.length < 120
-      ? err.message
-      : 'Could not parse that document. Try adding more detail (rate, load #, dates).';
-    statusLine.className = 'status-line error';
-  }finally{
-    btn.disabled = false;
-    btn.textContent = 'Generate Settlement';
-  }
-}
-
-function money(n){
-  if(n === null || n === undefined || isNaN(n)) return '$0.00';
-  return '$' + Number(n).toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2});
-}
-
-function renderSettlement(d){
-  const out = document.getElementById('settlementOutput');
-  const lineHaul = d.line_haul || 0;
-  const fsc = d.fuel_surcharge || 0;
-  const fuelDed = d.fuel_deduction || 0;
-  const otherDed = (d.other_deductions||[]).reduce((s,x)=>s+(x.amount||0),0);
-  const total = lineHaul + fsc - fuelDed - otherDed;
-
-  let deductionsHtml = '';
-  if(fuelDed) deductionsHtml += `<div class="line-item deduction"><span class="lbl">Fuel deduction</span><span>-${money(fuelDed)}</span></div>`;
-  (d.other_deductions||[]).forEach(x=>{
-    deductionsHtml += `<div class="line-item deduction"><span class="lbl">${escapeHtml(x.label||'Deduction')}</span><span>-${money(x.amount)}</span></div>`;
-  });
-
-  out.innerHTML = `
-    <div class="settlement">
-      <div class="settlement-head">
-        <div>LOAD <b>#${escapeHtml(d.load_number || '—')}</b></div>
-        <div style="text-align:right">
-          ${escapeHtml(d.driver || 'Driver —')}<br>
-          Truck ${escapeHtml(d.truck || '—')}
-        </div>
-      </div>
-      <div class="line-item"><span class="lbl">Route</span><span>${escapeHtml(d.origin||'—')} &rarr; ${escapeHtml(d.destination||'—')}</span></div>
-      <div class="line-item"><span class="lbl">Distance</span><span>${d.distance_mi ? d.distance_mi + ' mi' : '—'}</span></div>
-      <div class="line-item"><span class="lbl">Delivered</span><span>${escapeHtml(d.delivery_date||'—')} ${d.pod_confirmed ? '&middot; POD ✓' : ''}</span></div>
-      <div class="line-item"><span class="lbl">Line haul</span><span>${money(lineHaul)}</span></div>
-      ${fsc ? `<div class="line-item"><span class="lbl">Fuel surcharge</span><span>+${money(fsc)}</span></div>` : ''}
-      ${deductionsHtml}
-      <div class="settlement-total"><span>Net Pay</span><span>${money(total)}</span></div>
-      ${d.notes ? `<div style="margin-top:10px; color:var(--text-dim); font-size:11px;">${escapeHtml(d.notes)}</div>` : ''}
-    </div>
-  `;
-}
-
-function escapeHtml(s){
-  if(s === null || s === undefined) return '';
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
 
 // ---- Compliance gauges ----
 const gaugeDefs = [
