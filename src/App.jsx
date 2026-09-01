@@ -447,6 +447,37 @@ function CurrencyInput({ value, onChange, style }) {
   );
 }
 
+// Splits a Contact ID value on "/" or newline (however the person typed
+// multiple IDs) into a clean list of individual IDs.
+function splitContactIds(raw) {
+  return (raw || "")
+    .split(/[/\n]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+// Multiple contract IDs (e.g. "C-0002SBP5NQ/C-0002SCVGN") display stacked,
+// one per line, and the field grows to fit them. A single ID stays a
+// normal single line. Stored value is always "/"-joined.
+function ContactIdInput({ value, onChange, placeholder, style }) {
+  const ids = splitContactIds(value);
+  const displayValue = ids.length > 0 ? ids.join("\n") : "";
+  const rows = Math.max(1, ids.length || 1);
+
+  return (
+    <textarea
+      value={displayValue}
+      placeholder={placeholder}
+      rows={rows}
+      onChange={(e) => {
+        const newIds = splitContactIds(e.target.value);
+        onChange(newIds.join("/"));
+      }}
+      style={{ resize: "none", overflow: "hidden", ...style }}
+    />
+  );
+}
+
 function StatusPill({ value, onChange }) {
   const colors = {
     Paid: { fg: C.green, bg: C.greenDim },
@@ -1586,21 +1617,21 @@ export default function FleetLedger() {
                           marginBottom: 12,
                         }}
                       >
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 9.5, color: C.textFaint, fontFamily: FONT_MONO, textTransform: "uppercase", marginBottom: 2 }}>
                               Contact ID
                             </div>
-                            <input
+                            <ContactIdInput
                               value={c.contactId}
-                              onChange={(e) => updateContract(c.id, "contactId", e.target.value)}
+                              onChange={(v) => updateContract(c.id, "contactId", v)}
                               placeholder="C-1001"
-                              style={{ ...inputStyle, width: "100%", fontSize: 14, fontWeight: 600 }}
+                              style={{ ...inputStyle, width: "100%", fontSize: 14, fontWeight: 600, lineHeight: 1.4 }}
                             />
                           </div>
                           <button
                             onClick={() => deleteContract(c.id)}
-                            style={{ background: "transparent", border: "none", color: C.textFaint, padding: 6, flexShrink: 0, marginTop: 14 }}
+                            style={{ background: "transparent", border: "none", color: C.textFaint, padding: 6, flexShrink: 0, marginTop: 20 }}
                             title="Delete contract"
                           >
                             <Trash2 size={16} />
@@ -1764,7 +1795,22 @@ export default function FleetLedger() {
                         }}
                       >
                         <Cell width={colWidths.contact}>
-                          <EditableInput value={c.contactId} onChange={(v) => updateContract(c.id, "contactId", v)} placeholder="C-1001" />
+                          <ContactIdInput
+                            value={c.contactId}
+                            onChange={(v) => updateContract(c.id, "contactId", v)}
+                            placeholder="C-1001"
+                            style={{
+                              width: "100%",
+                              background: "transparent",
+                              border: "none",
+                              outline: "none",
+                              color: C.text,
+                              fontFamily: FONT_MONO,
+                              fontSize: 12.5,
+                              lineHeight: 1.5,
+                              padding: "8px 4px",
+                            }}
+                          />
                         </Cell>
                         <Cell width={colWidths.periodStart}>
                           <EditableInput type="date" value={c.periodStart} onChange={(v) => updateContract(c.id, "periodStart", v)} />
