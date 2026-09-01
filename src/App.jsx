@@ -1393,82 +1393,83 @@ export default function FleetLedger() {
                 No trucks yet. Add your first truck below.
               </div>
             )}
-          </div>
 
-          <div style={{ padding: 12, borderTop: isMobile ? "none" : `1px solid ${C.border}` }}>
-            {!newTruckOpen ? (
-              <button
-                onClick={() => setNewTruckOpen(true)}
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                  background: "transparent",
-                  border: `1px dashed ${C.borderLight}`,
-                  color: C.textDim,
-                  borderRadius: 6,
-                  padding: "9px 10px",
-                  fontSize: 12.5,
-                }}
-              >
-                <Plus size={14} /> Add truck
-              </button>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <input
-                  autoFocus
-                  value={newTruckName}
-                  onChange={(e) => setNewTruckName(e.target.value)}
-                  placeholder="Truck name (e.g. Unit 12 — Cascadia)"
-                  onKeyDown={(e) => e.key === "Enter" && addTruck()}
+            <div style={isMobile ? { flexShrink: 0, minWidth: 160 } : { marginTop: 4 }}>
+              {!newTruckOpen ? (
+                <button
+                  onClick={() => setNewTruckOpen(true)}
                   style={{
-                    background: C.surfaceAlt,
-                    border: `1px solid ${C.borderLight}`,
-                    borderRadius: 5,
-                    color: C.text,
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    background: "transparent",
+                    border: `1px dashed ${C.borderLight}`,
+                    color: C.textDim,
+                    borderRadius: 6,
+                    padding: "9px 10px",
                     fontSize: 12.5,
-                    padding: "7px 8px",
-                    outline: "none",
-                    fontFamily: FONT_BODY,
+                    height: isMobile ? "100%" : "auto",
                   }}
-                />
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button
-                    onClick={addTruck}
+                >
+                  <Plus size={14} /> Add truck
+                </button>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <input
+                    autoFocus
+                    value={newTruckName}
+                    onChange={(e) => setNewTruckName(e.target.value)}
+                    placeholder="Truck name (e.g. Unit 12 — Cascadia)"
+                    onKeyDown={(e) => e.key === "Enter" && addTruck()}
                     style={{
-                      flex: 1,
-                      background: C.amber,
-                      color: C.bg,
-                      border: "none",
-                      borderRadius: 5,
-                      padding: "7px 0",
-                      fontSize: 12,
-                      fontWeight: 600,
-                    }}
-                  >
-                    Add
-                  </button>
-                  <button
-                    onClick={() => {
-                      setNewTruckOpen(false);
-                      setNewTruckName("");
-                    }}
-                    style={{
-                      background: "transparent",
-                      color: C.textDim,
+                      background: C.surfaceAlt,
                       border: `1px solid ${C.borderLight}`,
                       borderRadius: 5,
-                      padding: "7px 10px",
-                      fontSize: 12,
+                      color: C.text,
+                      fontSize: 12.5,
+                      padding: "7px 8px",
+                      outline: "none",
+                      fontFamily: FONT_BODY,
                     }}
-                  >
-                    Cancel
-                  </button>
+                  />
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button
+                      onClick={addTruck}
+                      style={{
+                        flex: 1,
+                        background: C.amber,
+                        color: C.bg,
+                        border: "none",
+                        borderRadius: 5,
+                        padding: "7px 0",
+                        fontSize: 12,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Add
+                    </button>
+                    <button
+                      onClick={() => {
+                        setNewTruckOpen(false);
+                        setNewTruckName("");
+                      }}
+                      style={{
+                        background: "transparent",
+                        color: C.textDim,
+                        border: `1px solid ${C.borderLight}`,
+                        borderRadius: 5,
+                        padding: "7px 10px",
+                        fontSize: 12,
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
