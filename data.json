@@ -1256,7 +1256,7 @@
       "otherPrice": "",
       "surcharge": "",
       "paymentDate": "",
-      "paymentStatus": "Pending"
+      "paymentStatus": "Paid"
     },
     {
       "id": "558bd1ee-50d2-4d3d-8095-e903a4b12978",
@@ -1294,7 +1294,7 @@
       "otherPrice": "",
       "surcharge": "",
       "paymentDate": "",
-      "paymentStatus": "Pending"
+      "paymentStatus": "Paid"
     },
     {
       "id": "4cd9014b-3693-45fd-8f38-88fd2a5a7bfb",
