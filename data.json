@@ -365,6 +365,14 @@
       "description": "Invoice EP405146491",
       "amount": "21.23",
       "date": ""
+    },
+    {
+      "id": "836ba107-aa76-4741-929d-c3868a9af1bf",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "category": "Fuel",
+      "description": "",
+      "amount": "",
+      "date": ""
     }
   ]
 }
