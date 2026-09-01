@@ -671,6 +671,14 @@
       "description": "DEF INVOICE WALMART",
       "amount": "95.02",
       "date": ""
+    },
+    {
+      "id": "03170b76-9d02-4308-96d5-661c60c2467d",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "category": "Fuel",
+      "description": "",
+      "amount": "",
+      "date": ""
     }
   ]
 }
