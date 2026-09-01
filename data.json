@@ -265,7 +265,7 @@
     {
       "id": "b92d242b-1921-4b10-8d1a-5b1970b42968",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": " invoice XA405607718:01",
       "amount": "593",
       "date": ""
@@ -281,7 +281,7 @@
     {
       "id": "afab4e6e-eba5-4dbe-ac74-59b5b541f13c",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405549599:01",
       "amount": "117.27",
       "date": ""
@@ -305,7 +305,7 @@
     {
       "id": "a32fa71c-2b45-45bd-90d5-14f677fa282a",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405570446:01",
       "amount": "556",
       "date": ""
@@ -313,7 +313,7 @@
     {
       "id": "6827d16a-23bf-4955-9ad8-9224b60ef55f",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405569926:01",
       "amount": "42.02",
       "date": ""
@@ -321,7 +321,7 @@
     {
       "id": "567262d7-a919-400b-ae02-a5de7c00e504",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405568244",
       "amount": "165.58",
       "date": ""
@@ -329,7 +329,7 @@
     {
       "id": "4213ffa3-7e17-4c55-8321-36feb68d5102",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405568243",
       "amount": "194.44",
       "date": ""
@@ -337,7 +337,7 @@
     {
       "id": "72c2a1a1-ba74-4651-930e-e07ccb0e3c62",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405568228",
       "amount": "249.14",
       "date": ""
@@ -345,7 +345,7 @@
     {
       "id": "872d3995-07cc-4ea5-a489-d4f0d3ac7061",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice A405568229",
       "amount": "320.52",
       "date": ""
@@ -353,7 +353,7 @@
     {
       "id": "1c7e3462-79e0-4755-aa34-b52a596664bd",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405560976",
       "amount": "108.74",
       "date": ""
@@ -361,7 +361,7 @@
     {
       "id": "8a3fa844-d70d-4c02-9da3-805d30985836",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice EP405146491",
       "amount": "21.23",
       "date": ""
@@ -377,7 +377,7 @@
     {
       "id": "4f668cee-b785-46f7-b2f9-ff1fcd16bf12",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405565282",
       "amount": "252.29",
       "date": ""
@@ -385,7 +385,7 @@
     {
       "id": "dd0b85a0-c4c9-47f6-9297-d0adf2e64f44",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405560981",
       "amount": "397.71",
       "date": ""
@@ -393,7 +393,7 @@
     {
       "id": "6e8b2b4c-cebe-46c7-8aa3-cf8be8ae64e3",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405560193",
       "amount": "275.58",
       "date": ""
@@ -449,7 +449,7 @@
     {
       "id": "4975fd79-5b11-4fd7-b3e8-c2e65b6cedb1",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405585139",
       "amount": "281.72",
       "date": ""
@@ -457,7 +457,7 @@
     {
       "id": "fb0997a2-1e6a-4ad6-87d8-274d1848ea57",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405585579",
       "amount": "175",
       "date": ""
@@ -465,7 +465,7 @@
     {
       "id": "b815f428-58f3-4355-a84e-3fef7421612f",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405585568",
       "amount": "255.90",
       "date": ""
@@ -473,7 +473,7 @@
     {
       "id": "34575bd7-c785-4c90-8c39-9c516512d745",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405587252",
       "amount": "3892.09",
       "date": ""
@@ -481,7 +481,7 @@
     {
       "id": "9c08bd8a-c17c-49ac-b643-6bb6cdcf49cc",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405587976",
       "amount": "84.04",
       "date": ""
@@ -489,7 +489,7 @@
     {
       "id": "0d54308d-5d5f-4c64-acb1-81f6f41d9949",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405588972",
       "amount": "248.47",
       "date": ""
@@ -497,7 +497,7 @@
     {
       "id": "1b58958d-ddef-47e4-8822-fceaccce53cc",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405593746",
       "amount": "85.59",
       "date": ""
@@ -505,7 +505,7 @@
     {
       "id": "628b7f2b-020c-4fc3-89b9-63b3104af5b3",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "Invoice XA405588777",
       "amount": "1454.51",
       "date": ""
@@ -537,7 +537,7 @@
     {
       "id": "31407946-35c6-437a-9abd-4ae1504e9d31",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": " walmart parts",
       "amount": "60.44",
       "date": ""
