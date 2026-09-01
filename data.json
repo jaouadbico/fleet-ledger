@@ -589,6 +589,14 @@
       "description": "phone bills ",
       "amount": "",
       "date": ""
+    },
+    {
+      "id": "1e0d64aa-5adf-4b1d-9040-a04d478453cd",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "category": "Fuel",
+      "description": "",
+      "amount": "",
+      "date": ""
     }
   ]
 }
