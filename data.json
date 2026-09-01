@@ -565,6 +565,14 @@
       "description": "",
       "amount": "1817.30",
       "date": ""
+    },
+    {
+      "id": "569a3ce7-06a9-4d24-8c8b-9b1b42e6b0e6",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "category": "Fuel",
+      "description": "",
+      "amount": "",
+      "date": ""
     }
   ]
 }
