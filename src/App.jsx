@@ -784,7 +784,15 @@ export default function FleetLedger() {
     setContracts((prev) => prev.filter((c) => c.id !== id));
   };
 
-  const truckContracts = contracts.filter((c) => c.truckId === selectedTruckId);
+  const truckContracts = contracts
+    .filter((c) => c.truckId === selectedTruckId)
+    .slice()
+    .sort((a, b) => {
+      if (!a.periodStart && !b.periodStart) return 0;
+      if (!a.periodStart) return 1; // undated contracts sort last
+      if (!b.periodStart) return -1;
+      return new Date(a.periodStart) - new Date(b.periodStart);
+    });
   const truckExpenses = expenses.filter((e) => e.truckId === selectedTruckId);
   const selectedTruck = trucks.find((t) => t.id === selectedTruckId);
 
