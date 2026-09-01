@@ -341,6 +341,14 @@
       "description": "Invoice XA405568228",
       "amount": "249.14",
       "date": ""
+    },
+    {
+      "id": "872d3995-07cc-4ea5-a489-d4f0d3ac7061",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "category": "Fuel",
+      "description": "",
+      "amount": "",
+      "date": ""
     }
   ]
 }
