@@ -315,6 +315,41 @@
       "surcharge": "",
       "paymentDate": "2026-01-02",
       "paymentStatus": "Paid"
+    },
+    {
+      "id": "fc8b7cba-7537-4401-bc27-7d509108f73f",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "contactId": "",
+      "periodStart": "",
+      "periodEnd": "",
+      "blocks": [
+        {
+          "id": "e10c5ef3-8da3-4a12-a50e-831291ed6516",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        },
+        {
+          "id": "1f9fd3f8-927b-4fff-a93a-1ca2e5da8e47",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        },
+        {
+          "id": "4d56109c-83ba-4cac-bc04-0ad70a84534b",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        }
+      ],
+      "basePricePerWeek": "",
+      "otherPrice": "",
+      "surcharge": "",
+      "paymentDate": "",
+      "paymentStatus": "Pending"
     }
   ],
   "expenses": [
