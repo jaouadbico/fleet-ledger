@@ -160,6 +160,7 @@ const EXPENSE_CATEGORIES = [
   "Fuel",
   "Parking",
   "Tolls",
+  "Parts",
   "Mechanic / Repairs",
   "Maintenance",
   "Insurance",
