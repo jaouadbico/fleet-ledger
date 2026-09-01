@@ -405,6 +405,14 @@
       "description": "Invoice 89",
       "amount": "746.17",
       "date": ""
+    },
+    {
+      "id": "07f34b46-1489-472b-8f3b-30d33309bc15",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "category": "Fuel",
+      "description": "",
+      "amount": "",
+      "date": ""
     }
   ]
 }
