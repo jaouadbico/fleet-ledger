@@ -652,7 +652,7 @@
       "id": "898e0527-29c2-43f2-b861-b85919da5ef2",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
       "category": "Fuel",
-      "description": "DEF INVOICE",
+      "description": "DEF INVOICE WALMART",
       "amount": "149.39",
       "date": ""
     },
@@ -660,7 +660,7 @@
       "id": "4d21e10c-9edf-4d20-8293-90c354066903",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
       "category": "Fuel",
-      "description": "OIL AND DEF",
+      "description": "OIL AND DEFWALMART",
       "amount": "286.53",
       "date": ""
     },
