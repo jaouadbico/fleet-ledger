@@ -398,17 +398,9 @@
           "note": "",
           "day": "",
           "time": ""
-        },
-        {
-          "id": "d966ad8f-55f8-4cf4-a139-70d262241152",
-          "qty": "1",
-          "price": "",
-          "note": "",
-          "day": "",
-          "time": ""
         }
       ],
-      "basePricePerWeek": "",
+      "basePricePerWeek": "3214",
       "otherPrice": "",
       "surcharge": "",
       "paymentDate": "",
