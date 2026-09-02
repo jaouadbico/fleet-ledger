@@ -1773,7 +1773,7 @@
     {
       "id": "898e0527-29c2-43f2-b861-b85919da5ef2",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "DEF INVOICE WALMART",
       "amount": "149.39",
       "date": ""
@@ -1781,7 +1781,7 @@
     {
       "id": "4d21e10c-9edf-4d20-8293-90c354066903",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "OIL AND DEF WALMART",
       "amount": "286.53",
       "date": ""
@@ -1789,7 +1789,7 @@
     {
       "id": "800334a8-6200-4acb-8436-a667fd48163f",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "DEF INVOICE WALMART",
       "amount": "95.02",
       "date": ""
@@ -1797,7 +1797,7 @@
     {
       "id": "03170b76-9d02-4308-96d5-661c60c2467d",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "OIL 10W30 WALMART",
       "amount": "48.09",
       "date": ""
@@ -1805,7 +1805,7 @@
     {
       "id": "51076aa6-f627-44b4-8931-0f5df16f5a3b",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": " BRAKE CLEANER WALMART ",
       "amount": "94.41",
       "date": ""
@@ -1813,7 +1813,7 @@
     {
       "id": "12577fa5-d749-4ce4-b720-f38324304efe",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "OIL 10W30",
       "amount": "416.74",
       "date": ""
@@ -1821,7 +1821,7 @@
     {
       "id": "77b9c7a9-913f-45bd-9d83-ec5b72e7f974",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "category": "Parts",
+      "category": "Other",
       "description": "def truck stop ",
       "amount": "2002",
       "date": ""
