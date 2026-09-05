@@ -1,8 +1,12 @@
 {
   "complianceDates": {
-    "dMedical": "",
-    "dIfta": "",
-    "dIrp": "",
-    "dInspection": ""
+    "dMedical": "2028-05-01",
+    "dIfta": "2026-11-13",
+    "dIrp": "2027-07-01",
+    "dInspection": "2027-05-01"
+  },
+  "oilChange": {
+    "odometer": "711",
+    "interval": "40000"
   }
 }
