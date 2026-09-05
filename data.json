@@ -792,14 +792,6 @@
       "periodEnd": "2026-04-18",
       "blocks": [
         {
-          "id": "2c6762d7-7f4e-4130-b085-d695648c82f9",
-          "qty": "1",
-          "price": "",
-          "note": "",
-          "day": "",
-          "time": ""
-        },
-        {
           "id": "595fe4b9-cefa-4e96-80a9-6badc12e64ec",
           "qty": "1",
           "price": "",
