@@ -247,6 +247,45 @@
   }
   .fleet-inputs input:focus{outline:1px solid var(--amber);}
 
+  .oil-section{
+    margin-top:22px;
+    padding-top:20px;
+    border-top:1px solid var(--border);
+  }
+  .oil-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .oil-head h3{
+    font-family:'Oswald',sans-serif;
+    font-size:15px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+  }
+  .oil-result{
+    margin-top:6px;
+    padding:14px 16px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:4px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    color:var(--text-dim);
+    min-height:20px;
+  }
+  .oil-result .due-mileage{
+    color:var(--text);
+    font-family:'Oswald',sans-serif;
+    font-size:20px;
+    font-weight:600;
+  }
+  .oil-result.ok .due-mileage{color:var(--green);}
+  .oil-result.watch .due-mileage{color:var(--amber);}
+  .oil-result.urgent .due-mileage, .oil-result.expired .due-mileage{color:var(--red);}
+  .oil-result .remaining{margin-top:4px;}
+
   .alert-banner{
     display:none;
     background:var(--red-dim);
@@ -481,6 +520,24 @@
     </div>
 
     <div class="gauges" id="gauges"></div>
+
+    <div class="oil-section">
+      <div class="oil-head">
+        <h3>Next Oil Change</h3>
+        <span class="panel-eyebrow">MILEAGE-BASED</span>
+      </div>
+      <div class="fleet-inputs">
+        <div>
+          <label class="field-label">Current odometer (mi)</label>
+          <input type="number" id="oilOdometer" placeholder="e.g. 214500" oninput="onOilChange()">
+        </div>
+        <div>
+          <label class="field-label">Oil change interval (mi)</label>
+          <input type="number" id="oilInterval" placeholder="40000" oninput="onOilChange()">
+        </div>
+      </div>
+      <div class="oil-result" id="oilResult"></div>
+    </div>
   </div>
 
 </div>
@@ -613,8 +670,12 @@ async function pullComplianceFromGithub(showStatus){
       gaugeDefs.forEach(g => {
         if(values[g.id]) document.getElementById(g.id).value = values[g.id];
       });
+      const oil = result.data.oilChange || {};
+      if(oil.odometer) document.getElementById('oilOdometer').value = oil.odometer;
+      document.getElementById('oilInterval').value = oil.interval || '40000';
       renderGauges();
       checkAlerts();
+      renderOilResult();
       githubSha = result.sha;
       setGithubStatus('Synced ' + new Date().toLocaleTimeString());
     }else{
@@ -634,12 +695,16 @@ async function pushComplianceToGithub(){
     try{
       const values = {};
       gaugeDefs.forEach(g => values[g.id] = document.getElementById(g.id).value);
+      const oilValues = {
+        odometer: document.getElementById('oilOdometer').value,
+        interval: document.getElementById('oilInterval').value,
+      };
       let sha = githubSha;
       try{
         const fresh = await githubGetFile(githubConfig);
         sha = fresh.exists ? fresh.sha : null;
       }catch(e){ /* fall back to last-known sha */ }
-      const result = await githubPutFile(githubConfig, { complianceDates: values }, sha);
+      const result = await githubPutFile(githubConfig, { complianceDates: values, oilChange: oilValues }, sha);
       githubSha = result.content.sha;
       setGithubStatus('Synced ' + new Date().toLocaleTimeString());
     }catch(e){
@@ -686,13 +751,21 @@ async function connectGithubFromPanel(){
       gaugeDefs.forEach(g => {
         if(values[g.id]) document.getElementById(g.id).value = values[g.id];
       });
+      const oil = result.data.oilChange || {};
+      if(oil.odometer) document.getElementById('oilOdometer').value = oil.odometer;
+      document.getElementById('oilInterval').value = oil.interval || '40000';
       renderGauges();
       checkAlerts();
+      renderOilResult();
       githubSha = result.sha;
     }else{
       const values = {};
       gaugeDefs.forEach(g => values[g.id] = document.getElementById(g.id).value);
-      const put = await githubPutFile(cfg, { complianceDates: values }, null);
+      const oilValues = {
+        odometer: document.getElementById('oilOdometer').value,
+        interval: document.getElementById('oilInterval').value,
+      };
+      const put = await githubPutFile(cfg, { complianceDates: values, oilChange: oilValues }, null);
       githubSha = put.content.sha;
     }
     localStorage.setItem(BACKOFFICE_GITHUB_KEY, JSON.stringify(cfg));
@@ -818,6 +891,55 @@ function onDateChange(){
   checkAlerts();
 }
 
+// ---- Oil change tracking (mileage-based, not date-based) ----
+async function saveOilData(){
+  const values = {
+    odometer: document.getElementById('oilOdometer').value,
+    interval: document.getElementById('oilInterval').value,
+  };
+  try{
+    await storage.set('oil-change-data', JSON.stringify(values));
+  }catch(e){ console.error('Storage save failed', e); }
+  pushComplianceToGithub();
+}
+
+async function loadOilData(){
+  try{
+    const result = await storage.get('oil-change-data');
+    if(result && result.value){
+      const values = JSON.parse(result.value);
+      if(values.odometer) document.getElementById('oilOdometer').value = values.odometer;
+      document.getElementById('oilInterval').value = values.interval || '40000';
+      return true;
+    }
+  }catch(e){ /* no saved oil data yet */ }
+  return false;
+}
+
+function renderOilResult(){
+  const odoEl = document.getElementById('oilOdometer');
+  const intervalEl = document.getElementById('oilInterval');
+  const resultEl = document.getElementById('oilResult');
+  const odometer = parseFloat(odoEl.value);
+  const interval = parseFloat(intervalEl.value) || 40000;
+
+  if(isNaN(odometer) || odometer <= 0){
+    resultEl.className = 'oil-result';
+    resultEl.innerHTML = 'Enter the odometer reading from the last oil change to calculate the next one.';
+    return;
+  }
+
+  const dueAt = odometer + interval;
+  resultEl.className = 'oil-result ok';
+  resultEl.innerHTML = `Next oil change due at <span class="due-mileage">${dueAt.toLocaleString('en-US')} mi</span>
+    <div class="remaining">(${odometer.toLocaleString('en-US')} mi + ${interval.toLocaleString('en-US')} mi interval)</div>`;
+}
+
+function onOilChange(){
+  renderOilResult();
+  saveOilData();
+}
+
 // ---- Alert banner: reappears every open while <=30 days out, until resolved ----
 function checkAlerts(){
   const due = gaugeDefs.map(g=>{
@@ -891,7 +1013,6 @@ setInterval(checkAlerts, 60*60*1000);
 
 // ---- Init: load saved dates, or seed example dates on first run ----
 (async function init(){
-  updateKeyIndicator();
   githubConfig = loadGithubConfig();
   updateGithubIndicator();
   if(githubConfig) setGithubStatus(githubConfig.inherited ? 'Using shared Fleet Ledger connection' : '');
@@ -908,6 +1029,12 @@ setInterval(checkAlerts, 60*60*1000);
   }
   renderGauges();
   checkAlerts();
+
+  const hadOilSaved = await loadOilData();
+  if(!hadOilSaved){
+    document.getElementById('oilInterval').value = '40000';
+  }
+  renderOilResult();
 
   if(githubConfig) await pullComplianceFromGithub(true);
 })();
