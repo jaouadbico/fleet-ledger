@@ -360,17 +360,17 @@ function BlockStack({ blocks, onChangeBlock, onAddBlock, onRemoveBlock, width })
               <X size={10} />
             </button>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 3, paddingLeft: 14 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2, paddingLeft: 14 }}>
             <select
               value={b.day || ""}
               onChange={(e) => onChangeBlock(i, "day", e.target.value)}
               title="Block start day"
               style={{
-                width: "56%",
+                width: "100%",
                 background: "transparent",
                 border: "none",
                 outline: "none",
-                color: b.day ? C.textFaint : C.textFaint,
+                color: C.textFaint,
                 fontFamily: FONT_MONO,
                 fontSize: 10.5,
                 padding: "1px 2px",
@@ -387,7 +387,7 @@ function BlockStack({ blocks, onChangeBlock, onAddBlock, onRemoveBlock, width })
               value={b.time || ""}
               onChange={(v) => onChangeBlock(i, "time", v)}
               style={{
-                width: "44%",
+                width: "100%",
                 color: C.textFaint,
                 fontFamily: FONT_MONO,
                 fontSize: 10.5,
@@ -452,65 +452,44 @@ function splitContactIds(raw) {
 // Multiple contract IDs (e.g. "C-0002SBP5NQ/C-0002SCVGN") display stacked,
 // one per line, and the field grows to fit them. A single ID stays a
 // normal single line. Stored value is always "/"-joined.
-const HOURS_24 = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
-const MINUTES_15 = ["00", "15", "30", "45"];
+// One dropdown listing every 15-minute time slot as "HH:MM", so picking a
+// time sets hour and minute together in a single action. Since the option
+// text is built directly (not from a native <input type="time">, which
+// renders in whatever 12h/24h format the device's system settings use -
+// Safari in particular ignores attempts to override this), this is
+// guaranteed to show 24-hour format on every device.
+const TIME_OPTIONS_24H = [];
+for (let hh = 0; hh < 24; hh++) {
+  for (const mm of ["00", "15", "30", "45"]) {
+    TIME_OPTIONS_24H.push(`${String(hh).padStart(2, "0")}:${mm}`);
+  }
+}
 
-// A 24-hour time selector built from two <select> dropdowns instead of a
-// native <input type="time">. Native time inputs render in whatever
-// 12h/24h format the device's system settings use (Safari in particular
-// ignores attempts to force this), so this guarantees 24-hour display
-// everywhere regardless of device locale.
 function TimeInput24({ value, onChange, style }) {
-  const [h, m] = (value || "").split(":");
-
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 1, ...style }}>
-      <select
-        value={h || ""}
-        onChange={(e) => onChange(`${e.target.value}:${m || "00"}`)}
-        title="Hour (24h)"
-        style={{
-          background: "transparent",
-          border: "none",
-          outline: "none",
-          color: "inherit",
-          fontFamily: "inherit",
-          fontSize: "inherit",
-          padding: 0,
-          width: "50%",
-        }}
-      >
-        <option style={{ background: C.surface, color: C.text }} value="">--</option>
-        {HOURS_24.map((hh) => (
-          <option key={hh} style={{ background: C.surface, color: C.text }} value={hh}>
-            {hh}
-          </option>
-        ))}
-      </select>
-      <span>:</span>
-      <select
-        value={m || ""}
-        onChange={(e) => onChange(`${h || "00"}:${e.target.value}`)}
-        title="Minute"
-        style={{
-          background: "transparent",
-          border: "none",
-          outline: "none",
-          color: "inherit",
-          fontFamily: "inherit",
-          fontSize: "inherit",
-          padding: 0,
-          width: "50%",
-        }}
-      >
-        <option style={{ background: C.surface, color: C.text }} value="">--</option>
-        {MINUTES_15.map((mm) => (
-          <option key={mm} style={{ background: C.surface, color: C.text }} value={mm}>
-            {mm}
-          </option>
-        ))}
-      </select>
-    </div>
+    <select
+      value={value || ""}
+      onChange={(e) => onChange(e.target.value)}
+      title="Start time (24h)"
+      style={{
+        background: "transparent",
+        border: "none",
+        outline: "none",
+        color: "inherit",
+        fontFamily: "inherit",
+        fontSize: "inherit",
+        padding: 0,
+        width: "100%",
+        ...style,
+      }}
+    >
+      <option style={{ background: C.surface, color: C.text }} value="">--:--</option>
+      {TIME_OPTIONS_24H.map((t) => (
+        <option key={t} style={{ background: C.surface, color: C.text }} value={t}>
+          {t}
+        </option>
+      ))}
+    </select>
   );
 }
 
