@@ -661,14 +661,14 @@
           "price": "2056.57",
           "note": "",
           "day": "Monday",
-          "time": ""
+          "time": "21:00"
         },
         {
           "id": "f3274321-312a-4d7a-bda1-428ff8b9c00f",
           "qty": "1",
           "price": "2078.81",
           "note": "",
-          "day": "",
+          "day": "Thursday",
           "time": ""
         }
       ],
