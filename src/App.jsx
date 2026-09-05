@@ -11,15 +11,15 @@ const C = {
   border: "#DADDE2",
   borderLight: "#C4C9D0",
   text: "#14181C",
-  textDim: "#5C6675",
-  textFaint: "#8A94A3",
-  amber: "#8F5808",
+  textDim: "#454E5A",
+  textFaint: "#5A636E",
+  amber: "#7A4A06",
   amberDim: "#FBE8C7",
-  green: "#1E8A4C",
+  green: "#166B3A",
   greenDim: "#DDF2E3",
-  red: "#C0392B",
+  red: "#A62E20",
   redDim: "#FADBD8",
-  blue: "#2B6CB0",
+  blue: "#1F5490",
 };
 
 const FONT_DISPLAY = "'Space Grotesk', sans-serif";
@@ -383,23 +383,16 @@ function BlockStack({ blocks, onChangeBlock, onAddBlock, onRemoveBlock, width })
                 </option>
               ))}
             </select>
-            <input
+            <TimeInput24
               value={b.time || ""}
-              onChange={(e) => onChangeBlock(i, "time", e.target.value)}
-              type="time"
-              title="Block start time"
+              onChange={(v) => onChangeBlock(i, "time", v)}
               style={{
                 width: "44%",
-                background: "transparent",
-                border: "none",
-                outline: "none",
                 color: C.textFaint,
                 fontFamily: FONT_MONO,
                 fontSize: 10.5,
                 padding: "1px 2px",
               }}
-              onFocus={(e) => (e.target.style.background = C.surfaceHover)}
-              onBlur={(e) => (e.target.style.background = "transparent")}
             />
           </div>
         </div>
@@ -459,6 +452,68 @@ function splitContactIds(raw) {
 // Multiple contract IDs (e.g. "C-0002SBP5NQ/C-0002SCVGN") display stacked,
 // one per line, and the field grows to fit them. A single ID stays a
 // normal single line. Stored value is always "/"-joined.
+const HOURS_24 = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MINUTES_15 = ["00", "15", "30", "45"];
+
+// A 24-hour time selector built from two <select> dropdowns instead of a
+// native <input type="time">. Native time inputs render in whatever
+// 12h/24h format the device's system settings use (Safari in particular
+// ignores attempts to force this), so this guarantees 24-hour display
+// everywhere regardless of device locale.
+function TimeInput24({ value, onChange, style }) {
+  const [h, m] = (value || "").split(":");
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 1, ...style }}>
+      <select
+        value={h || ""}
+        onChange={(e) => onChange(`${e.target.value}:${m || "00"}`)}
+        title="Hour (24h)"
+        style={{
+          background: "transparent",
+          border: "none",
+          outline: "none",
+          color: "inherit",
+          fontFamily: "inherit",
+          fontSize: "inherit",
+          padding: 0,
+          width: "50%",
+        }}
+      >
+        <option style={{ background: C.surface, color: C.text }} value="">--</option>
+        {HOURS_24.map((hh) => (
+          <option key={hh} style={{ background: C.surface, color: C.text }} value={hh}>
+            {hh}
+          </option>
+        ))}
+      </select>
+      <span>:</span>
+      <select
+        value={m || ""}
+        onChange={(e) => onChange(`${h || "00"}:${e.target.value}`)}
+        title="Minute"
+        style={{
+          background: "transparent",
+          border: "none",
+          outline: "none",
+          color: "inherit",
+          fontFamily: "inherit",
+          fontSize: "inherit",
+          padding: 0,
+          width: "50%",
+        }}
+      >
+        <option style={{ background: C.surface, color: C.text }} value="">--</option>
+        {MINUTES_15.map((mm) => (
+          <option key={mm} style={{ background: C.surface, color: C.text }} value={mm}>
+            {mm}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 function ContactIdInput({ value, onChange, placeholder, style }) {
   const ids = splitContactIds(value);
   const displayValue = ids.length > 0 ? ids.join("\n") : "";
