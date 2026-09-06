@@ -33,13 +33,6 @@ function formatDate(dateStr) {
   return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 }
 
-function writeOutput(name, value) {
-  const outPath = process.env.GITHUB_OUTPUT;
-  if (!outPath) return;
-  const delimiter = `EOF_${name}_${Date.now()}`;
-  fs.appendFileSync(outPath, `${name}<<${delimiter}\n${value}\n${delimiter}\n`);
-}
-
 let raw = {};
 try {
   raw = JSON.parse(fs.readFileSync(DATA_PATH, "utf8"));
@@ -75,10 +68,6 @@ if (Object.keys(dates).length === 0) {
 console.log(subject);
 console.log(body);
 
-writeOutput("subject", subject);
-writeOutput("body", body);
-writeOutput("has_items", dueItems.length > 0 ? "true" : "false");
-
 // ---- Push notification via ntfy.sh (free, no account needed) ----
 const ntfyTopic = process.env.NTFY_TOPIC;
 if (ntfyTopic) {
@@ -97,4 +86,31 @@ if (ntfyTopic) {
   }
 } else {
   console.log("NTFY_TOPIC secret not set - skipping push notification.");
+}
+
+// ---- Email via Resend's API (no personal email account or app password needed) ----
+const resendKey = process.env.RESEND_API_KEY;
+const emailTo = process.env.EMAIL_TO;
+if (resendKey && emailTo) {
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "Fleet Ledger <onboarding@resend.dev>",
+        to: [emailTo],
+        subject,
+        text: body,
+      }),
+    });
+    const result = await res.json().catch(() => ({}));
+    console.log("Resend status:", res.status, JSON.stringify(result));
+  } catch (e) {
+    console.error("Resend send failed:", e.message);
+  }
+} else {
+  console.log("RESEND_API_KEY or EMAIL_TO not set - skipping email.");
 }
