@@ -1,0 +1,39 @@
+name: Monthly Compliance Check
+
+on:
+  schedule:
+    # 1st of every month, 13:00 UTC (~8-9am US Eastern depending on DST)
+    - cron: "0 13 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check compliance dates and send push notification
+        id: check
+        run: node scripts/monthly-check.mjs
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+
+      - name: Send email
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: ${{ steps.check.outputs.subject }}
+          to: ${{ secrets.EMAIL_TO }}
+          from: Fleet Ledger
+          body: ${{ steps.check.outputs.body }}
