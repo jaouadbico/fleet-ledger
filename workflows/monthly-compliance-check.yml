@@ -19,21 +19,9 @@ jobs:
         with:
           node-version: 20
 
-      - name: Check compliance dates and send push notification
-        id: check
+      - name: Check compliance dates and send notifications
         run: node scripts/monthly-check.mjs
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
-
-      - name: Send email
-        if: always()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: ${{ steps.check.outputs.subject }}
-          to: ${{ secrets.EMAIL_TO }}
-          from: Fleet Ledger
-          body: ${{ steps.check.outputs.body }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
