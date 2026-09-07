@@ -74,6 +74,13 @@
           "note": "",
           "day": "",
           "time": ""
+        },
+        {
+          "id": "5b1b41ff-9ecd-4d5e-b1ad-6362bbde27b1",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
         }
       ],
       "basePricePerWeek": "1912",
