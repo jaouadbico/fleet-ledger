@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
-import { Truck, Plus, Download, Upload, X, Trash2, Github, RefreshCw, Settings, Wrench } from "lucide-react";
+import { createClient } from "@supabase/supabase-js";
+import { Truck, Plus, Download, Upload, X, Trash2, Github, RefreshCw, Settings, Wrench, LogOut } from "lucide-react";
 
 // ---------- Design tokens ----------
 const C = {
@@ -566,7 +567,7 @@ function StatusPill({ value, onChange }) {
 }
 
 // ---------- Main app ----------
-export default function FleetLedger() {
+function FleetLedgerMain({ onLogout, userEmail }) {
   const [trucks, setTrucks] = useState([]);
   const [contracts, setContracts] = useState([]);
   const [expenses, setExpenses] = useState([]);
@@ -1277,6 +1278,24 @@ export default function FleetLedger() {
             }}
           >
             <Download size={14} /> {!isMobile && "Export .xlsx"}
+          </button>
+          <button
+            onClick={onLogout}
+            title={userEmail ? `Log out (${userEmail})` : "Log out"}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "transparent",
+              border: `1px solid ${C.borderLight}`,
+              color: C.textDim,
+              borderRadius: 6,
+              padding: isMobile ? "8px 10px" : "8px 12px",
+              fontSize: 12.5,
+              fontWeight: 500,
+            }}
+          >
+            <LogOut size={14} /> {!isMobile && "Log Out"}
           </button>
         </div>
       </div>
@@ -2230,4 +2249,388 @@ export default function FleetLedger() {
       </div>
     </div>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Auth wrapper: gates the whole app behind Supabase email/password login,
+// with built-in email verification (Supabase sends the confirmation email
+// automatically on sign-up; login is blocked until that link is clicked).
+// The Supabase project URL + anon key are supplied by the person themselves
+// (same "bring your own service" pattern as GitHub Sync) since a static
+// site can't hold real secrets - the anon key is designed to be public.
+// ---------------------------------------------------------------------------
+
+const SUPABASE_CONFIG_KEY = "fleet-ledger-supabase-config";
+
+function loadSupabaseConfig() {
+  try {
+    const raw = localStorage.getItem(SUPABASE_CONFIG_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+const authInputStyle = {
+  width: "100%",
+  background: "#F5F6F8",
+  border: "1px solid #DADDE2",
+  borderRadius: 6,
+  color: "#14181C",
+  fontSize: 14,
+  padding: "11px 12px",
+  outline: "none",
+  fontFamily: "'Inter', sans-serif",
+  marginBottom: 10,
+};
+
+function AuthShell({ children }) {
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#FFFFFF",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "'Inter', sans-serif",
+        padding: 20,
+      }}
+    >
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap');
+      `}</style>
+      <div style={{ width: 380, maxWidth: "100%" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "center", marginBottom: 28 }}>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 7,
+              background: "#7A4A06",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Truck size={20} color="#FFFFFF" strokeWidth={2.4} />
+          </div>
+          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 20, color: "#14181C" }}>
+            Fleet Ledger
+          </div>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function SupabaseSetupScreen({ onSave }) {
+  const [url, setUrl] = useState("");
+  const [anonKey, setAnonKey] = useState("");
+  const [error, setError] = useState("");
+
+  return (
+    <AuthShell>
+      <div style={{ background: "#F5F6F8", border: "1px solid #DADDE2", borderRadius: 10, padding: 24 }}>
+        <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 16, marginBottom: 6, color: "#14181C" }}>
+          Connect login
+        </div>
+        <div style={{ fontSize: 12.5, color: "#454E5A", lineHeight: 1.5, marginBottom: 16 }}>
+          This app's login runs on your own free Supabase project (email/password with built-in email
+          verification). Create one at{" "}
+          <a href="https://supabase.com" target="_blank" rel="noopener" style={{ color: "#7A4A06" }}>
+            supabase.com
+          </a>
+          , then paste the Project URL and anon public key from Settings → API.
+        </div>
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://xxxxx.supabase.co"
+          style={authInputStyle}
+        />
+        <input
+          value={anonKey}
+          onChange={(e) => setAnonKey(e.target.value)}
+          placeholder="anon public key"
+          style={authInputStyle}
+        />
+        {error && <div style={{ color: "#A62E20", fontSize: 12.5, marginBottom: 10 }}>{error}</div>}
+        <button
+          onClick={() => {
+            if (!url.trim() || !anonKey.trim()) {
+              setError("Both fields are required.");
+              return;
+            }
+            onSave({ url: url.trim(), anonKey: anonKey.trim() });
+          }}
+          style={{
+            width: "100%",
+            background: "#7A4A06",
+            color: "#FFFFFF",
+            border: "none",
+            borderRadius: 6,
+            padding: "11px 0",
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          Connect
+        </button>
+      </div>
+    </AuthShell>
+  );
+}
+
+function LoginSignupScreen({ supabase, onReconfigure }) {
+  const [mode, setMode] = useState("login"); // "login" | "signup"
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const handleLogin = async () => {
+    setError("");
+    setMessage("");
+    if (!email.trim() || !password) {
+      setError("Enter your email and password.");
+      return;
+    }
+    setBusy(true);
+    const { error: err } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    setBusy(false);
+    if (err) {
+      if (/confirm/i.test(err.message)) {
+        setError("Please verify your email first - check your inbox for the confirmation link.");
+      } else {
+        setError(err.message);
+      }
+    }
+    // On success, the onAuthStateChange listener in the wrapper handles the rest.
+  };
+
+  const handleSignup = async () => {
+    setError("");
+    setMessage("");
+    if (!email.trim() || !password) {
+      setError("Enter an email and password.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords don't match.");
+      return;
+    }
+    setBusy(true);
+    const { error: err } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+    });
+    setBusy(false);
+    if (err) {
+      setError(err.message);
+    } else {
+      setMessage("Check your email for a confirmation link. Once verified, log in below with the same credentials.");
+      setMode("login");
+    }
+  };
+
+  return (
+    <AuthShell>
+      <div style={{ background: "#F5F6F8", border: "1px solid #DADDE2", borderRadius: 10, padding: 24 }}>
+        <div style={{ display: "flex", gap: 6, marginBottom: 18 }}>
+          <button
+            onClick={() => {
+              setMode("login");
+              setError("");
+              setMessage("");
+            }}
+            style={{
+              flex: 1,
+              background: mode === "login" ? "#ECEEF1" : "transparent",
+              border: `1px solid ${mode === "login" ? "#C4C9D0" : "transparent"}`,
+              borderBottom: mode === "login" ? "2px solid #7A4A06" : "2px solid transparent",
+              borderRadius: "6px 6px 0 0",
+              padding: "8px 0",
+              fontSize: 13,
+              fontWeight: 600,
+              color: mode === "login" ? "#14181C" : "#5A636E",
+              fontFamily: "'Space Grotesk', sans-serif",
+              cursor: "pointer",
+            }}
+          >
+            Log In
+          </button>
+          <button
+            onClick={() => {
+              setMode("signup");
+              setError("");
+              setMessage("");
+            }}
+            style={{
+              flex: 1,
+              background: mode === "signup" ? "#ECEEF1" : "transparent",
+              border: `1px solid ${mode === "signup" ? "#C4C9D0" : "transparent"}`,
+              borderBottom: mode === "signup" ? "2px solid #7A4A06" : "2px solid transparent",
+              borderRadius: "6px 6px 0 0",
+              padding: "8px 0",
+              fontSize: 13,
+              fontWeight: 600,
+              color: mode === "signup" ? "#14181C" : "#5A636E",
+              fontFamily: "'Space Grotesk', sans-serif",
+              cursor: "pointer",
+            }}
+          >
+            Create Account
+          </button>
+        </div>
+
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          autoComplete="email"
+          style={authInputStyle}
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          autoComplete={mode === "signup" ? "new-password" : "current-password"}
+          onKeyDown={(e) => e.key === "Enter" && mode === "login" && handleLogin()}
+          style={authInputStyle}
+        />
+        {mode === "signup" && (
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm password"
+            autoComplete="new-password"
+            onKeyDown={(e) => e.key === "Enter" && handleSignup()}
+            style={authInputStyle}
+          />
+        )}
+
+        {error && <div style={{ color: "#A62E20", fontSize: 12.5, marginBottom: 10, lineHeight: 1.4 }}>{error}</div>}
+        {message && <div style={{ color: "#166B3A", fontSize: 12.5, marginBottom: 10, lineHeight: 1.4 }}>{message}</div>}
+
+        <button
+          onClick={mode === "login" ? handleLogin : handleSignup}
+          disabled={busy}
+          style={{
+            width: "100%",
+            background: "#7A4A06",
+            color: "#FFFFFF",
+            border: "none",
+            borderRadius: 6,
+            padding: "11px 0",
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: busy ? "wait" : "pointer",
+            opacity: busy ? 0.7 : 1,
+          }}
+        >
+          {busy ? "Please wait..." : mode === "login" ? "Log In" : "Create Account"}
+        </button>
+
+        <button
+          onClick={onReconfigure}
+          style={{
+            width: "100%",
+            background: "transparent",
+            border: "none",
+            color: "#5A636E",
+            fontSize: 11.5,
+            marginTop: 14,
+            cursor: "pointer",
+            textDecoration: "underline",
+          }}
+        >
+          Use a different Supabase project
+        </button>
+      </div>
+    </AuthShell>
+  );
+}
+
+export default function FleetLedger() {
+  const [supabaseConfig, setSupabaseConfig] = useState(() => loadSupabaseConfig());
+  const [supabase, setSupabase] = useState(null);
+  const [session, setSession] = useState(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!supabaseConfig) {
+      setAuthLoaded(true);
+      return;
+    }
+    let client;
+    try {
+      client = createClient(supabaseConfig.url, supabaseConfig.anonKey);
+    } catch (e) {
+      setAuthLoaded(true);
+      return;
+    }
+    setSupabase(client);
+
+    client.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setAuthLoaded(true);
+    });
+
+    const { data: listener } = client.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+    });
+
+    return () => listener.subscription.unsubscribe();
+  }, [supabaseConfig]);
+
+  const handleSaveConfig = (cfg) => {
+    localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify(cfg));
+    setAuthLoaded(false);
+    setSupabaseConfig(cfg);
+  };
+
+  const handleReconfigure = () => {
+    localStorage.removeItem(SUPABASE_CONFIG_KEY);
+    setSupabaseConfig(null);
+    setSupabase(null);
+    setSession(null);
+  };
+
+  const handleLogout = async () => {
+    if (supabase) await supabase.auth.signOut();
+    setSession(null);
+  };
+
+  if (!authLoaded) {
+    return (
+      <AuthShell>
+        <div style={{ textAlign: "center", color: "#5A636E", fontSize: 13 }}>Loading...</div>
+      </AuthShell>
+    );
+  }
+
+  if (!supabaseConfig) {
+    return <SupabaseSetupScreen onSave={handleSaveConfig} />;
+  }
+
+  if (!session) {
+    return <LoginSignupScreen supabase={supabase} onReconfigure={handleReconfigure} />;
+  }
+
+  return <FleetLedgerMain onLogout={handleLogout} userEmail={session.user?.email} />;
 }
