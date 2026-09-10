@@ -549,7 +549,7 @@ export default function FleetLedger() {
   const [contracts, setContracts] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [selectedTruckId, setSelectedTruckId] = useState(null);
-  const [activeView, setActiveView] = useState("contracts"); // "contracts" | "expenses"
+  const [activeView, setActiveView] = useState("thisWeek"); // "thisWeek" | "contracts" | "expenses"
   const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState("");
   const [newTruckOpen, setNewTruckOpen] = useState(false);
@@ -858,7 +858,21 @@ export default function FleetLedger() {
       if (!b.paymentDate) return -1;
       return new Date(a.paymentDate) - new Date(b.paymentDate);
     });
+
+  // Contracts whose Period Start falls in the current calendar week - the
+  // "This Week" tab is just a live filtered view of the same contracts, so
+  // editing one here edits the exact same record shown in Contracts.
+  const today = new Date();
+  const currentWeekNum = calendarWeek(today.toISOString().slice(0, 10));
+  const currentYear = today.getFullYear();
+  const thisWeekContracts = truckContracts.filter((c) => {
+    if (!c.periodStart) return false;
+    const d = new Date(c.periodStart + "T00:00:00");
+    return d.getFullYear() === currentYear && calendarWeek(c.periodStart) === currentWeekNum;
+  });
+
   const truckExpenses = expenses.filter((e) => e.truckId === selectedTruckId);
+  const visibleContracts = activeView === "thisWeek" ? thisWeekContracts : truckContracts;
   const selectedTruck = trucks.find((t) => t.id === selectedTruckId);
 
   const truckTotals = (truckId) => {
@@ -1113,7 +1127,7 @@ export default function FleetLedger() {
         <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 10, flexWrap: "wrap" }}>
           <a
             href="backoffice.html"
-            title="Open Rig Back-Office — settlements & compliance"
+            title="Open Compliance Desk — compliance dates & oil change tracking"
             style={{
               display: "flex",
               alignItems: "center",
@@ -1128,7 +1142,7 @@ export default function FleetLedger() {
               textDecoration: "none",
             }}
           >
-            <Wrench size={14} /> {!isMobile && "Back-Office"}
+            <Wrench size={14} /> {!isMobile && "Compliance Desk"}
           </a>
 
           {status && !isMobile && (
@@ -1612,6 +1626,7 @@ export default function FleetLedger() {
                 }}
               >
                 {[
+                  { key: "thisWeek", label: `This Week (Wk ${calendarWeek(new Date().toISOString().slice(0, 10))})` },
                   { key: "contracts", label: "Contracts" },
                   { key: "expenses", label: "Expenses" },
                 ].map((tab) => (
@@ -1636,9 +1651,14 @@ export default function FleetLedger() {
               </div>
 
               {/* Contracts */}
-              {activeView === "contracts" && (isMobile ? (
+              {(activeView === "contracts" || activeView === "thisWeek") && (isMobile ? (
                 <div style={{ flex: 1, overflow: "auto", padding: "14px 14px 24px" }}>
-                  {truckContracts.map((c) => {
+                  {activeView === "thisWeek" && visibleContracts.length === 0 && (
+                    <div style={{ fontSize: 12.5, color: C.textFaint, padding: "20px 4px", textAlign: "center" }}>
+                      No contracts with a Period Start in Week {currentWeekNum} yet.
+                    </div>
+                  )}
+                  {visibleContracts.map((c) => {
                     const payout = payoutPerWeek(c);
                     return (
                       <div
@@ -1770,24 +1790,26 @@ export default function FleetLedger() {
                     );
                   })}
 
-                  <button
-                    onClick={() => addContract(selectedTruck.id)}
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                      background: "transparent",
-                      border: `1px dashed ${C.borderLight}`,
-                      color: C.textDim,
-                      borderRadius: 6,
-                      padding: "12px 14px",
-                      fontSize: 13,
-                    }}
-                  >
-                    <Plus size={14} /> Add contract
-                  </button>
+                  {activeView === "contracts" && (
+                    <button
+                      onClick={() => addContract(selectedTruck.id)}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        background: "transparent",
+                        border: `1px dashed ${C.borderLight}`,
+                        color: C.textDim,
+                        borderRadius: 6,
+                        padding: "12px 14px",
+                        fontSize: 13,
+                      }}
+                    >
+                      <Plus size={14} /> Add contract
+                    </button>
+                  )}
                 </div>
               ) : (
               <div style={{ flex: 1, overflow: "auto", padding: "0 24px 24px" }}>
@@ -1817,7 +1839,13 @@ export default function FleetLedger() {
                     <Cell width={colWidths.del}></Cell>
                   </div>
 
-                  {truckContracts.map((c) => {
+                  {activeView === "thisWeek" && visibleContracts.length === 0 && (
+                    <div style={{ fontSize: 12.5, color: C.textFaint, padding: "20px 4px" }}>
+                      No contracts with a Period Start in Week {currentWeekNum} yet.
+                    </div>
+                  )}
+
+                  {visibleContracts.map((c) => {
                     const payout = payoutPerWeek(c);
                     return (
                       <div
@@ -1904,23 +1932,25 @@ export default function FleetLedger() {
                     );
                   })}
 
-                  <button
-                    onClick={() => addContract(selectedTruck.id)}
-                    style={{
-                      marginTop: 12,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      background: "transparent",
-                      border: `1px dashed ${C.borderLight}`,
-                      color: C.textDim,
-                      borderRadius: 6,
-                      padding: "9px 14px",
-                      fontSize: 12.5,
-                    }}
-                  >
-                    <Plus size={14} /> Add contract
-                  </button>
+                  {activeView === "contracts" && (
+                    <button
+                      onClick={() => addContract(selectedTruck.id)}
+                      style={{
+                        marginTop: 12,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        background: "transparent",
+                        border: `1px dashed ${C.borderLight}`,
+                        color: C.textDim,
+                        borderRadius: 6,
+                        padding: "9px 14px",
+                        fontSize: 12.5,
+                      }}
+                    >
+                      <Plus size={14} /> Add contract
+                    </button>
+                  )}
                 </div>
               </div>
               ))}
