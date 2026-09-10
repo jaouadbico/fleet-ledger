@@ -7,8 +7,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Rig Back-Office">
-<title>Rig Back-Office</title>
+<meta name="apple-mobile-web-app-title" content="Compliance Desk">
+<title>Compliance Desk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -456,7 +456,7 @@
       </div>
       <div class="brand-text">
         <h1>Fleet Ledger</h1>
-        <p>Back-Office · Compliance & Maintenance</p>
+        <p>Compliance Desk · Dates & Mileage</p>
       </div>
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
@@ -1002,7 +1002,7 @@ async function maybeFireDesktopNotification(due){
   due.forEach(x=>{
     if(log[x.label] !== today){
       const txt = x.days < 0 ? `${Math.abs(x.days)} days overdue` : `due in ${x.days} day${x.days===1?'':'s'}`;
-      new Notification('Rig Back-Office — Compliance Alert', {
+      new Notification('Compliance Desk — Compliance Alert', {
         body: `${x.label}: ${txt}`
       });
       log[x.label] = today;
