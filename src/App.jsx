@@ -2289,7 +2289,7 @@ function AuthShell({ children }) {
     <div
       style={{
         minHeight: "100vh",
-        background: "#FFFFFF",
+        background: "#F4F3F1",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -2300,12 +2300,12 @@ function AuthShell({ children }) {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap');
       `}</style>
-      <div style={{ width: 380, maxWidth: "100%" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "center", marginBottom: 28 }}>
+      <div style={{ width: 420, maxWidth: "100%" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28 }}>
           <div
             style={{
-              width: 36,
-              height: 36,
+              width: 32,
+              height: 32,
               borderRadius: 7,
               background: "#7A4A06",
               display: "flex",
@@ -2313,9 +2313,9 @@ function AuthShell({ children }) {
               justifyContent: "center",
             }}
           >
-            <Truck size={20} color="#FFFFFF" strokeWidth={2.4} />
+            <Truck size={18} color="#FFFFFF" strokeWidth={2.4} />
           </div>
-          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 20, color: "#14181C" }}>
+          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 17, color: "#14181C" }}>
             Fleet Ledger
           </div>
         </div>
@@ -2393,6 +2393,26 @@ function LoginSignupScreen({ supabase, onReconfigure }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
+  const fieldLabelStyle = {
+    fontSize: 14,
+    color: "#454E5A",
+    marginBottom: 6,
+    display: "block",
+    fontFamily: "'Inter', sans-serif",
+  };
+  const fieldInputStyle = {
+    width: "100%",
+    background: "#FFFFFF",
+    border: "1px solid #C4C9D0",
+    borderRadius: 4,
+    color: "#14181C",
+    fontSize: 15,
+    padding: "12px 14px",
+    outline: "none",
+    fontFamily: "'Inter', sans-serif",
+    marginBottom: 20,
+  };
+
   const handleLogin = async () => {
     setError("");
     setMessage("");
@@ -2440,128 +2460,143 @@ function LoginSignupScreen({ supabase, onReconfigure }) {
     if (err) {
       setError(err.message);
     } else {
-      setMessage("Check your email for a confirmation link. Once verified, log in below with the same credentials.");
+      setMessage("Check your email for a confirmation link. Once verified, sign in below with the same credentials.");
       setMode("login");
     }
   };
 
+  const switchMode = (newMode) => {
+    setMode(newMode);
+    setError("");
+    setMessage("");
+  };
+
   return (
     <AuthShell>
-      <div style={{ background: "#F5F6F8", border: "1px solid #DADDE2", borderRadius: 10, padding: 24 }}>
-        <div style={{ display: "flex", gap: 6, marginBottom: 18 }}>
-          <button
-            onClick={() => {
-              setMode("login");
-              setError("");
-              setMessage("");
-            }}
-            style={{
-              flex: 1,
-              background: mode === "login" ? "#ECEEF1" : "transparent",
-              border: `1px solid ${mode === "login" ? "#C4C9D0" : "transparent"}`,
-              borderBottom: mode === "login" ? "2px solid #7A4A06" : "2px solid transparent",
-              borderRadius: "6px 6px 0 0",
-              padding: "8px 0",
-              fontSize: 13,
-              fontWeight: 600,
-              color: mode === "login" ? "#14181C" : "#5A636E",
-              fontFamily: "'Space Grotesk', sans-serif",
-              cursor: "pointer",
-            }}
-          >
-            Log In
-          </button>
-          <button
-            onClick={() => {
-              setMode("signup");
-              setError("");
-              setMessage("");
-            }}
-            style={{
-              flex: 1,
-              background: mode === "signup" ? "#ECEEF1" : "transparent",
-              border: `1px solid ${mode === "signup" ? "#C4C9D0" : "transparent"}`,
-              borderBottom: mode === "signup" ? "2px solid #7A4A06" : "2px solid transparent",
-              borderRadius: "6px 6px 0 0",
-              padding: "8px 0",
-              fontSize: 13,
-              fontWeight: 600,
-              color: mode === "signup" ? "#14181C" : "#5A636E",
-              fontFamily: "'Space Grotesk', sans-serif",
-              cursor: "pointer",
-            }}
-          >
-            Create Account
-          </button>
-        </div>
+      <div
+        style={{
+          fontFamily: "'Space Grotesk', sans-serif",
+          fontWeight: 700,
+          fontSize: 42,
+          color: "#14181C",
+          marginBottom: 8,
+          lineHeight: 1,
+        }}
+      >
+        {mode === "login" ? "Sign in" : "Create account"}
+      </div>
+      <div style={{ fontSize: 16, color: "#454E5A", marginBottom: 32, fontFamily: "'Inter', sans-serif" }}>
+        {mode === "login"
+          ? "Your trucks, contracts, and expenses sync to every device you sign in on."
+          : "One login gets you into Fleet Ledger and Compliance Desk, on any device."}
+      </div>
 
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          autoComplete="email"
-          style={authInputStyle}
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          autoComplete={mode === "signup" ? "new-password" : "current-password"}
-          onKeyDown={(e) => e.key === "Enter" && mode === "login" && handleLogin()}
-          style={authInputStyle}
-        />
-        {mode === "signup" && (
+      <label style={fieldLabelStyle}>Email</label>
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="you@example.com"
+        autoComplete="email"
+        style={fieldInputStyle}
+      />
+
+      <label style={fieldLabelStyle}>Password</label>
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        autoComplete={mode === "signup" ? "new-password" : "current-password"}
+        onKeyDown={(e) => e.key === "Enter" && mode === "login" && handleLogin()}
+        style={{ ...fieldInputStyle, marginBottom: mode === "signup" ? 20 : 24 }}
+      />
+
+      {mode === "signup" && (
+        <>
+          <label style={fieldLabelStyle}>Confirm password</label>
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Confirm password"
             autoComplete="new-password"
             onKeyDown={(e) => e.key === "Enter" && handleSignup()}
-            style={authInputStyle}
+            style={{ ...fieldInputStyle, marginBottom: 24 }}
           />
+        </>
+      )}
+
+      {error && (
+        <div style={{ color: "#A62E20", fontSize: 14, marginBottom: 16, lineHeight: 1.4, fontFamily: "'Inter', sans-serif" }}>
+          {error}
+        </div>
+      )}
+      {message && (
+        <div style={{ color: "#166B3A", fontSize: 14, marginBottom: 16, lineHeight: 1.4, fontFamily: "'Inter', sans-serif" }}>
+          {message}
+        </div>
+      )}
+
+      <button
+        onClick={mode === "login" ? handleLogin : handleSignup}
+        disabled={busy}
+        style={{
+          width: "100%",
+          background: "#7A4A06",
+          color: "#FFFFFF",
+          border: "none",
+          borderRadius: 4,
+          padding: "16px 0",
+          fontSize: 16,
+          fontWeight: 700,
+          fontFamily: "'Space Grotesk', sans-serif",
+          cursor: busy ? "wait" : "pointer",
+          opacity: busy ? 0.7 : 1,
+          marginBottom: 22,
+        }}
+      >
+        {busy ? "Please wait..." : mode === "login" ? "Sign In" : "Create Account"}
+      </button>
+
+      <div style={{ fontSize: 15, color: "#454E5A", fontFamily: "'Inter', sans-serif" }}>
+        {mode === "login" ? (
+          <>
+            Don't have an account?{" "}
+            <a
+              onClick={() => switchMode("signup")}
+              style={{ color: "#7A4A06", fontWeight: 700, textDecoration: "underline", cursor: "pointer" }}
+            >
+              Sign up
+            </a>
+          </>
+        ) : (
+          <>
+            Already have an account?{" "}
+            <a
+              onClick={() => switchMode("login")}
+              style={{ color: "#7A4A06", fontWeight: 700, textDecoration: "underline", cursor: "pointer" }}
+            >
+              Sign in
+            </a>
+          </>
         )}
-
-        {error && <div style={{ color: "#A62E20", fontSize: 12.5, marginBottom: 10, lineHeight: 1.4 }}>{error}</div>}
-        {message && <div style={{ color: "#166B3A", fontSize: 12.5, marginBottom: 10, lineHeight: 1.4 }}>{message}</div>}
-
-        <button
-          onClick={mode === "login" ? handleLogin : handleSignup}
-          disabled={busy}
-          style={{
-            width: "100%",
-            background: "#7A4A06",
-            color: "#FFFFFF",
-            border: "none",
-            borderRadius: 6,
-            padding: "11px 0",
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: busy ? "wait" : "pointer",
-            opacity: busy ? 0.7 : 1,
-          }}
-        >
-          {busy ? "Please wait..." : mode === "login" ? "Log In" : "Create Account"}
-        </button>
-
-        <button
-          onClick={onReconfigure}
-          style={{
-            width: "100%",
-            background: "transparent",
-            border: "none",
-            color: "#5A636E",
-            fontSize: 11.5,
-            marginTop: 14,
-            cursor: "pointer",
-            textDecoration: "underline",
-          }}
-        >
-          Use a different Supabase project
-        </button>
       </div>
+
+      <button
+        onClick={onReconfigure}
+        style={{
+          width: "100%",
+          background: "transparent",
+          border: "none",
+          color: "#5A636E",
+          fontSize: 12,
+          marginTop: 24,
+          cursor: "pointer",
+          textDecoration: "underline",
+          fontFamily: "'Inter', sans-serif",
+        }}
+      >
+        Use a different Supabase project
+      </button>
     </AuthShell>
   );
 }
