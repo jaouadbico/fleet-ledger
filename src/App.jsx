@@ -126,6 +126,28 @@ function calendarWeek(dateStr) {
   return Math.floor((daysSinceJan1 + jan1WeekdaySun0) / 7) + 1;
 }
 
+// Sunday (as YYYY-MM-DD) of the week containing the given date.
+function getWeekSunday(dateStr) {
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() - d.getDay());
+  return d.toISOString().slice(0, 10);
+}
+
+function addDays(dateStr, days) {
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function formatWeekRange(sundayStr) {
+  const start = new Date(sundayStr + "T00:00:00");
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  const fmt = (d) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase();
+  const year = end.getFullYear();
+  return `${fmt(start)} \u2013 ${fmt(end)}, ${year}`;
+}
+
 function num(v) {
   const n = parseFloat(v);
   return isNaN(n) ? 0 : n;
@@ -811,8 +833,10 @@ export default function FleetLedger() {
     setExpenses((prev) => prev.filter((e) => e.id !== id));
   };
 
-  const addContract = (truckId) => {
-    setContracts((prev) => [...prev, emptyContract(truckId)]);
+  const addContract = (truckId, periodStart) => {
+    const c = emptyContract(truckId);
+    if (periodStart) c.periodStart = periodStart;
+    setContracts((prev) => [...prev, c]);
   };
 
   const updateContract = (id, field, value) => {
@@ -1621,33 +1645,42 @@ export default function FleetLedger() {
               <div
                 style={{
                   display: "flex",
-                  gap: 6,
+                  alignItems: "baseline",
+                  gap: 12,
                   padding: isMobile ? "10px 14px 0" : "14px 24px 0",
+                  flexWrap: "wrap",
                 }}
               >
-                {[
-                  { key: "thisWeek", label: `This Week (Wk ${calendarWeek(new Date().toISOString().slice(0, 10))})` },
-                  { key: "contracts", label: "Contracts" },
-                  { key: "expenses", label: "Expenses" },
-                ].map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveView(tab.key)}
-                    style={{
-                      background: activeView === tab.key ? C.surfaceAlt : "transparent",
-                      border: `1px solid ${activeView === tab.key ? C.borderLight : "transparent"}`,
-                      borderBottom: activeView === tab.key ? `2px solid ${C.amber}` : "2px solid transparent",
-                      color: activeView === tab.key ? C.text : C.textDim,
-                      borderRadius: "6px 6px 0 0",
-                      padding: "8px 16px",
-                      fontSize: 12.5,
-                      fontWeight: 600,
-                      fontFamily: FONT_DISPLAY,
-                    }}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
+                <div style={{ display: "flex", gap: 6 }}>
+                  {[
+                    { key: "thisWeek", label: `This Week (Wk ${calendarWeek(new Date().toISOString().slice(0, 10))})` },
+                    { key: "contracts", label: "Contracts" },
+                    { key: "expenses", label: "Expenses" },
+                  ].map((tab) => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveView(tab.key)}
+                      style={{
+                        background: activeView === tab.key ? C.surfaceAlt : "transparent",
+                        border: `1px solid ${activeView === tab.key ? C.borderLight : "transparent"}`,
+                        borderBottom: activeView === tab.key ? `2px solid ${C.amber}` : "2px solid transparent",
+                        color: activeView === tab.key ? C.text : C.textDim,
+                        borderRadius: "6px 6px 0 0",
+                        padding: "8px 16px",
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        fontFamily: FONT_DISPLAY,
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+                {activeView === "thisWeek" && (
+                  <div style={{ fontSize: 11, color: C.textFaint, fontFamily: FONT_MONO, letterSpacing: 0.3, paddingBottom: 6 }}>
+                    {formatWeekRange(getWeekSunday(new Date().toISOString().slice(0, 10)))} · SUN-SAT
+                  </div>
+                )}
               </div>
 
               {/* Contracts */}
