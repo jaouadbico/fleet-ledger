@@ -120,6 +120,13 @@
           "note": "",
           "day": "Wednesday",
           "time": "04:00"
+        },
+        {
+          "id": "e6a23920-4d9a-401c-b410-f2241cb7bbf1",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
         }
       ],
       "basePricePerWeek": "4014",
