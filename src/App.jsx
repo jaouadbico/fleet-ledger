@@ -2255,21 +2255,15 @@ function FleetLedgerMain({ onLogout, userEmail }) {
 // Auth wrapper: gates the whole app behind Supabase email/password login,
 // with built-in email verification (Supabase sends the confirmation email
 // automatically on sign-up; login is blocked until that link is clicked).
-// The Supabase project URL + anon key are supplied by the person themselves
-// (same "bring your own service" pattern as GitHub Sync) since a static
-// site can't hold real secrets - the anon key is designed to be public.
+// The Supabase project URL + anon/publishable key are hardcoded here rather
+// than entered per-browser - Supabase designs this key to be public (it's
+// rate-limited and permission-scoped, not a secret), so baking it into the
+// source is the normal way to use it and means every device goes straight
+// to Sign In instead of a setup step.
 // ---------------------------------------------------------------------------
 
-const SUPABASE_CONFIG_KEY = "fleet-ledger-supabase-config";
-
-function loadSupabaseConfig() {
-  try {
-    const raw = localStorage.getItem(SUPABASE_CONFIG_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) {
-    return null;
-  }
-}
+const SUPABASE_URL = "https://drmwrcrahmgypaykuvku.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_f8UjGSFuNtRjvfIxXA58CQ_PFcs-5Bo";
 
 const authInputStyle = {
   width: "100%",
@@ -2325,66 +2319,7 @@ function AuthShell({ children }) {
   );
 }
 
-function SupabaseSetupScreen({ onSave }) {
-  const [url, setUrl] = useState("");
-  const [anonKey, setAnonKey] = useState("");
-  const [error, setError] = useState("");
-
-  return (
-    <AuthShell>
-      <div style={{ background: "#F5F6F8", border: "1px solid #DADDE2", borderRadius: 10, padding: 24 }}>
-        <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 16, marginBottom: 6, color: "#14181C" }}>
-          Connect login
-        </div>
-        <div style={{ fontSize: 12.5, color: "#454E5A", lineHeight: 1.5, marginBottom: 16 }}>
-          This app's login runs on your own free Supabase project (email/password with built-in email
-          verification). Create one at{" "}
-          <a href="https://supabase.com" target="_blank" rel="noopener" style={{ color: "#7A4A06" }}>
-            supabase.com
-          </a>
-          , then paste the Project URL and anon public key from Settings → API.
-        </div>
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://xxxxx.supabase.co"
-          style={authInputStyle}
-        />
-        <input
-          value={anonKey}
-          onChange={(e) => setAnonKey(e.target.value)}
-          placeholder="anon public key"
-          style={authInputStyle}
-        />
-        {error && <div style={{ color: "#A62E20", fontSize: 12.5, marginBottom: 10 }}>{error}</div>}
-        <button
-          onClick={() => {
-            if (!url.trim() || !anonKey.trim()) {
-              setError("Both fields are required.");
-              return;
-            }
-            onSave({ url: url.trim(), anonKey: anonKey.trim() });
-          }}
-          style={{
-            width: "100%",
-            background: "#7A4A06",
-            color: "#FFFFFF",
-            border: "none",
-            borderRadius: 6,
-            padding: "11px 0",
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          Connect
-        </button>
-      </div>
-    </AuthShell>
-  );
-}
-
-function LoginSignupScreen({ supabase, onReconfigure }) {
+function LoginSignupScreen({ supabase }) {
   const [mode, setMode] = useState("login"); // "login" | "signup"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -2580,45 +2515,17 @@ function LoginSignupScreen({ supabase, onReconfigure }) {
           </>
         )}
       </div>
-
-      <button
-        onClick={onReconfigure}
-        style={{
-          width: "100%",
-          background: "transparent",
-          border: "none",
-          color: "#5A636E",
-          fontSize: 12,
-          marginTop: 24,
-          cursor: "pointer",
-          textDecoration: "underline",
-          fontFamily: "'Inter', sans-serif",
-        }}
-      >
-        Use a different Supabase project
-      </button>
     </AuthShell>
   );
 }
 
 export default function FleetLedger() {
-  const [supabaseConfig, setSupabaseConfig] = useState(() => loadSupabaseConfig());
   const [supabase, setSupabase] = useState(null);
   const [session, setSession] = useState(null);
   const [authLoaded, setAuthLoaded] = useState(false);
 
   useEffect(() => {
-    if (!supabaseConfig) {
-      setAuthLoaded(true);
-      return;
-    }
-    let client;
-    try {
-      client = createClient(supabaseConfig.url, supabaseConfig.anonKey);
-    } catch (e) {
-      setAuthLoaded(true);
-      return;
-    }
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     setSupabase(client);
 
     client.auth.getSession().then(({ data }) => {
@@ -2631,20 +2538,7 @@ export default function FleetLedger() {
     });
 
     return () => listener.subscription.unsubscribe();
-  }, [supabaseConfig]);
-
-  const handleSaveConfig = (cfg) => {
-    localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify(cfg));
-    setAuthLoaded(false);
-    setSupabaseConfig(cfg);
-  };
-
-  const handleReconfigure = () => {
-    localStorage.removeItem(SUPABASE_CONFIG_KEY);
-    setSupabaseConfig(null);
-    setSupabase(null);
-    setSession(null);
-  };
+  }, []);
 
   const handleLogout = async () => {
     if (supabase) await supabase.auth.signOut();
@@ -2659,12 +2553,8 @@ export default function FleetLedger() {
     );
   }
 
-  if (!supabaseConfig) {
-    return <SupabaseSetupScreen onSave={handleSaveConfig} />;
-  }
-
   if (!session) {
-    return <LoginSignupScreen supabase={supabase} onReconfigure={handleReconfigure} />;
+    return <LoginSignupScreen supabase={supabase} />;
   }
 
   return <FleetLedgerMain onLogout={handleLogout} userEmail={session.user?.email} />;
