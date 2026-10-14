@@ -1682,12 +1682,12 @@
         {
           "id": "ac948a7a-9264-4342-bdfd-000a4cbe8b9e",
           "qty": "1",
-          "price": "",
+          "price": "2369",
           "day": "Friday",
           "time": "18:00"
         }
       ],
-      "basePricePerWeek": "",
+      "basePricePerWeek": "7017",
       "otherPrice": "",
       "surcharge": "",
       "paymentDate": "",
