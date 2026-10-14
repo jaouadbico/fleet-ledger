@@ -1687,7 +1687,42 @@
           "time": "18:00"
         }
       ],
-      "basePricePerWeek": "7017",
+      "basePricePerWeek": "7107",
+      "otherPrice": "",
+      "surcharge": "",
+      "paymentDate": "",
+      "paymentStatus": "Pending"
+    },
+    {
+      "id": "acc2bb28-091f-49e3-b049-730ab8be18bf",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "contactId": "",
+      "periodStart": "",
+      "periodEnd": "",
+      "blocks": [
+        {
+          "id": "2d44a7bd-c4cb-440a-ae4e-e8f2b7313e59",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        },
+        {
+          "id": "78a1b3f1-1e34-4b75-8e32-5afced7d2ec6",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        },
+        {
+          "id": "0230bce7-0df7-4661-9f67-41dd8d186332",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        }
+      ],
+      "basePricePerWeek": "",
       "otherPrice": "",
       "surcharge": "",
       "paymentDate": "",
