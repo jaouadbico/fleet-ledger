@@ -1677,13 +1677,13 @@
           "qty": "1",
           "price": "",
           "day": "Tuesday",
-          "time": "19:00"
+          "time": "18:00"
         },
         {
           "id": "ac948a7a-9264-4342-bdfd-000a4cbe8b9e",
           "qty": "1",
           "price": "",
-          "day": "",
+          "day": "Friday",
           "time": ""
         }
       ],
