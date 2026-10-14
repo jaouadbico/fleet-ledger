@@ -1724,8 +1724,8 @@
           "qty": "1",
           "price": "2369",
           "note": "",
-          "day": "",
-          "time": ""
+          "day": "Friday",
+          "time": "18:00"
         }
       ],
       "basePricePerWeek": "",
