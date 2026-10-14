@@ -1663,12 +1663,12 @@
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
       "contactId": "C-00039X4QN",
       "periodStart": "2026-12-06",
-      "periodEnd": "",
+      "periodEnd": "2026-12-12",
       "blocks": [
         {
           "id": "702a9a26-28a2-4dce-af34-440df8f97d70",
           "qty": "1",
-          "price": "",
+          "price": "2369",
           "day": "",
           "time": ""
         },
