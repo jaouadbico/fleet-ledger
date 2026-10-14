@@ -1657,6 +1657,41 @@
       "surcharge": "",
       "paymentDate": "",
       "paymentStatus": "Pending"
+    },
+    {
+      "id": "27c0ac38-100d-4464-84e8-06901b82f7f0",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "contactId": "",
+      "periodStart": "",
+      "periodEnd": "",
+      "blocks": [
+        {
+          "id": "702a9a26-28a2-4dce-af34-440df8f97d70",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        },
+        {
+          "id": "83eb095a-701e-4439-9619-ee3d07cecf75",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        },
+        {
+          "id": "ac948a7a-9264-4342-bdfd-000a4cbe8b9e",
+          "qty": "1",
+          "price": "",
+          "day": "",
+          "time": ""
+        }
+      ],
+      "basePricePerWeek": "",
+      "otherPrice": "",
+      "surcharge": "",
+      "paymentDate": "",
+      "paymentStatus": "Pending"
     }
   ],
   "expenses": [
