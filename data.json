@@ -1669,6 +1669,7 @@
           "id": "702a9a26-28a2-4dce-af34-440df8f97d70",
           "qty": "1",
           "price": "2369",
+          "note": "",
           "day": "Sunday",
           "time": "18:00"
         },
@@ -1676,6 +1677,7 @@
           "id": "83eb095a-701e-4439-9619-ee3d07cecf75",
           "qty": "1",
           "price": "2369",
+          "note": "",
           "day": "Tuesday",
           "time": "18:00"
         },
@@ -1683,6 +1685,7 @@
           "id": "ac948a7a-9264-4342-bdfd-000a4cbe8b9e",
           "qty": "1",
           "price": "2369",
+          "note": "",
           "day": "Friday",
           "time": "18:00"
         }
@@ -1696,7 +1699,7 @@
     {
       "id": "acc2bb28-091f-49e3-b049-730ab8be18bf",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
-      "contactId": "",
+      "contactId": "C-0003B7M5X",
       "periodStart": "",
       "periodEnd": "",
       "blocks": [
@@ -1704,6 +1707,7 @@
           "id": "2d44a7bd-c4cb-440a-ae4e-e8f2b7313e59",
           "qty": "1",
           "price": "",
+          "note": "",
           "day": "",
           "time": ""
         },
@@ -1711,6 +1715,7 @@
           "id": "78a1b3f1-1e34-4b75-8e32-5afced7d2ec6",
           "qty": "1",
           "price": "",
+          "note": "",
           "day": "",
           "time": ""
         },
@@ -1718,6 +1723,7 @@
           "id": "0230bce7-0df7-4661-9f67-41dd8d186332",
           "qty": "1",
           "price": "",
+          "note": "",
           "day": "",
           "time": ""
         }
