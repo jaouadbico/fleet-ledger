@@ -2207,6 +2207,14 @@
       "description": "Set of 8 *400$",
       "amount": "3200",
       "date": "2026-10-30"
+    },
+    {
+      "id": "e2691c37-42f6-49d9-967a-c889c71ef29d",
+      "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
+      "category": "Fuel",
+      "description": "",
+      "amount": "",
+      "date": ""
     }
   ]
 }
