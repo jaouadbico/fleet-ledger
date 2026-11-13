@@ -1775,6 +1775,7 @@
           "id": "99f2b19d-83aa-41aa-bc9c-fb6cd6a34c74",
           "qty": "1",
           "price": "2352",
+          "note": "",
           "day": "Sunday",
           "time": "18:00"
         },
@@ -1782,6 +1783,7 @@
           "id": "97ceae1b-833d-47b7-8a2a-b41e351cee2a",
           "qty": "1",
           "price": "2352",
+          "note": "",
           "day": "Tuesday",
           "time": "18:00"
         }
