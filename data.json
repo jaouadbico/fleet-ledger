@@ -1786,7 +1786,7 @@
           "time": "18:00"
         }
       ],
-      "basePricePerWeek": "",
+      "basePricePerWeek": "4",
       "otherPrice": "",
       "surcharge": "",
       "paymentDate": "",
