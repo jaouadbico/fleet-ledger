@@ -1752,17 +1752,10 @@
         {
           "id": "3b891f0b-95cc-4843-b7f9-3f05134729c7",
           "qty": "1",
-          "price": "",
+          "price": "1922",
           "note": "",
           "day": "Tuesday",
           "time": "18:00"
-        },
-        {
-          "id": "78840bde-568c-47a0-934b-7299657cb39a",
-          "qty": "1",
-          "price": "",
-          "day": "",
-          "time": ""
         }
       ],
       "basePricePerWeek": "",
