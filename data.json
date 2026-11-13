@@ -1784,13 +1784,6 @@
           "price": "",
           "day": "Tuesday",
           "time": "18:00"
-        },
-        {
-          "id": "da5aae87-5d8a-4af1-88ba-ba1671d2ebe0",
-          "qty": "1",
-          "price": "",
-          "day": "",
-          "time": ""
         }
       ],
       "basePricePerWeek": "",
