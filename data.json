@@ -1742,19 +1742,18 @@
       "periodEnd": "2026-12-26",
       "blocks": [
         {
-          "id": "b75a579f-71d5-460f-b67f-23e7b66c435e",
-          "qty": "1",
-          "price": "1922",
-          "note": "",
-          "day": "",
-          "time": "18:00"
-        },
-        {
           "id": "f4c138be-a2ca-461f-9e28-f9d98a60f307",
           "qty": "1",
           "price": "1922",
           "note": "",
-          "day": "",
+          "day": "Sunday",
+          "time": ""
+        },
+        {
+          "id": "3b891f0b-95cc-4843-b7f9-3f05134729c7",
+          "qty": "1",
+          "price": "",
+          "day": "Tuesday",
           "time": ""
         }
       ],
