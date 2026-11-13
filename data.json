@@ -1811,14 +1811,14 @@
         {
           "id": "1bf48030-f5c6-47aa-a6d8-c4360e1da608",
           "qty": "1",
-          "price": "",
+          "price": "2352",
           "day": "Tuesday",
           "time": "09:00"
         },
         {
           "id": "b4d894d1-1359-404d-b4d8-13f473fa043f",
           "qty": "1",
-          "price": "",
+          "price": "2352",
           "day": "Friday",
           "time": "09:00"
         }
