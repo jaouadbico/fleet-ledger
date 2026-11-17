@@ -1836,13 +1836,14 @@
       "id": "7578bdf2-d50e-44b8-97c9-088176e4bd7e",
       "truckId": "39d770d8-c097-40f7-8aa2-1bb1cc19d0e3",
       "contactId": "",
-      "periodStart": "",
+      "periodStart": "2027-01-10",
       "periodEnd": "",
       "blocks": [
         {
           "id": "209b780d-7684-4784-b3c6-89f3ff9f9de0",
           "qty": "1",
           "price": "2352",
+          "note": "",
           "day": "Sunday",
           "time": "09:00"
         },
@@ -1850,6 +1851,7 @@
           "id": "330dc3eb-4a03-4cdc-94a0-ff1ed7f8263e",
           "qty": "1",
           "price": "2352",
+          "note": "",
           "day": "Wednesday",
           "time": "09:00"
         },
@@ -1857,6 +1859,7 @@
           "id": "54766376-9ba1-4934-8766-c5b95537de50",
           "qty": "1",
           "price": "2352",
+          "note": "",
           "day": "Friday",
           "time": "09:00"
         }
