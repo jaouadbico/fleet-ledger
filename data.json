@@ -1918,7 +1918,8 @@
         {
           "id": "b75f77f6-9431-4bcf-9f07-1e08d05f058f",
           "qty": "1",
-          "price": "",
+          "price": "2352",
+          "note": "",
           "day": "Sunday",
           "time": "18:00"
         },
@@ -1926,6 +1927,7 @@
           "id": "1d918e93-8bf3-4f3c-b404-0924ca52b592",
           "qty": "1",
           "price": "",
+          "note": "",
           "day": "Tuesday",
           "time": "18:00"
         },
@@ -1933,6 +1935,7 @@
           "id": "1222c70b-d9b4-43bd-bd5d-69a5859e8125",
           "qty": "1",
           "price": "",
+          "note": "",
           "day": "Friday",
           "time": "18:00"
         }
